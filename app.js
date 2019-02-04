@@ -4,8 +4,17 @@ var apiLogin= require("./routes/login")
 
 
 var admin = require("firebase-admin");
+var firebase = require("firebase");
 
 var serviceAccount = require("./credentials.json");
+
+var config = {
+  apiKey: "AIzaSyAgTvp9Mi_EjJ_RwzUwCLhTw6jsq9qBaJY",
+  authDomain: "vision-sharekey.firebaseapp.com",
+  databaseURL: "https://vision-sharekey.firebaseio.com/",
+  storageBucket: "<BUCKET>.appspot.com",
+};
+firebase.initializeApp(config);
 
 db = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

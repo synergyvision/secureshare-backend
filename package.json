@@ -10,6 +10,7 @@
         "bcrypt": "^3.0.3",
         "body-parser": "^1.18.3",
         "express": "^4.16.4",
+        "firebase": "^5.8.2",
         "firebase-admin": "^6.5.1",
         "nodemailer": "^5.1.1",
         "openpgp": "^4.4.6"
