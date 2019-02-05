@@ -15,10 +15,10 @@ api.post("/", function (req, res){
     var au = firebase.auth();    
 
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
-                return res.json({
-                    status: 200,
-                    message: 'User has logged in'
-                })
+            return res.json({
+                status: 200,
+                message: 'User has logged in'
+            })
        }).
        catch(function(error) {
             var code = error.code;
@@ -28,10 +28,8 @@ api.post("/", function (req, res){
                 message: message
             })
       })
+
 });
-
-
-
 
 api.post("/sendEmail", function (req , res){
 
@@ -72,5 +70,21 @@ api.post("/resetPassword" , function (req,res){
 
 });
 
+api.get("/activeUser", function (req,res) {
+    var au = firebase.auth();
+    au.onAuthStateChanged(function(user) {
+        if (user) {
+          res.json({
+              user: user.email,
+              uid: user.uid
+          })
+        } else {
+          res.json({
+              message: 'no user is logged in'
+          })
+        }
+      });
+
+})
 
 module.exports = api;

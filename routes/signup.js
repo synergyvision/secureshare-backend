@@ -21,21 +21,43 @@ api.post("/", function (req, res){
         if (username == null){ 
             // if the username doesnt exist we connect to firebase auth to create the new user
             auth.createUserWithEmailAndPassword(req.body.email,req.body.password).then ((response) => {                           
-                // if the user if succesfully added in auth we store it in the database  
-                var postRef = db.ref().child("Users");        
-                var newPostRef = postRef.push().set({
+                // if the user if succesfully added in auth we store it in the database 
+                console.log("Usuario registrado en auth")
+                auth.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
+                    var user_id = auth.currentUser.uid;
+                    console.log("Inicio sesion y tomo valor de uid auth");
+                    var postRef = db.ref().child("Users/" + user_id);    
+                    var newPostRef = postRef.set({
                     name: req.body.nombre,
                     lastname: req.body.apellido,
                     email: req.body.email,
                     phone: req.body.telefono,
-                    username: req.body.usuario
+                    username: req.body.usuario,
                 }, function (error){
                     if (error){
                         res.send(error);
                     } else {
                         res.json({status: 201, message: "User created succesfully"});
                     }
-                });                               
+                });    
+               }).
+               catch(function(error) {
+                    var code = error.code;
+                    var message = error.message;
+                    return res.json({
+                        status: code,
+                        message: message
+                    })
+              })
+              console.log('cerrando sesion');
+              auth.signOut().then(function() {
+              }).catch(function(error) {
+                 res.json({
+                     status: error.code,
+                     message: error.essage
+                    
+                 })
+              });                           
             }).catch(function(error){       
                     var errorCode = error.code;
                     var errorMessage = error.message;
