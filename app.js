@@ -8,6 +8,7 @@ var firebase = require("firebase");
 
 var serviceAccount = require("./credentials.json");
 
+var config = require("./credentials2.json");
 
 firebase.initializeApp(config);
 
