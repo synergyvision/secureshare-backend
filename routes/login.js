@@ -9,15 +9,24 @@ var api = express.Router();
 
 api.use(bodyParser.urlencoded({ extended: false }));
 
+api.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+ 
+
 api.post("/", function (req, res){
 
     var db = admin.database();
     var au = firebase.auth();    
-
+    console.log(req.body.email);
+    console.log(req.body.password);
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
             return res.json({
                 status: 200,
-                message: 'User has logged in'
+                message: 'User has logged in',
+                uid: au.currentUser.uid
             })
        }).
        catch(function(error) {
@@ -57,7 +66,7 @@ api.post("/resetPassword" , function (req,res){
     user.updatePassword(req.body.password).then(function(){
         res.json({
             status:200,
-            message: 'the password has been update'
+            message: 'the password has been updated'
         })
     }).catch(function(error){
         var code = error.code;
@@ -86,5 +95,6 @@ api.get("/activeUser", function (req,res) {
       });
 
 })
+
 
 module.exports = api;

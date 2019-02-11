@@ -2,6 +2,7 @@ var express = require("express");
 var apiRegister= require("./routes/signup");
 var apiLogin= require("./routes/login");
 var apiLogout= require("./routes/logout");
+var apiProfile= require("./routes/profile");
 
 
 var admin = require("firebase-admin");
@@ -28,6 +29,7 @@ app.get("/", function(req,res){
 app.use("/signup", apiRegister);
 app.use("/login", apiLogin);
 app.use("/logout", apiLogout);
+app.use("/profile",apiProfile);
 
 app.listen(3000, function() {
     console.log("Express app started on port 3000.");
