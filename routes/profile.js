@@ -89,7 +89,6 @@ var encryptKey = function(key) {
     return encryptedKey;
 }
 var decryptKey = function(key){
-    console.log("decrypting......")
     decryptedKey = cryptr.decrypt(key);
     return decryptedKey;
 }
@@ -161,27 +160,28 @@ api.post("/:userid/keys", function (req,res){
 
 var getPrivKeys = function (uid){
     db = admin.database();
-    db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
+   return db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
         var key = snapshot.val().PrivKey;
         privKey = decryptKey(key)
-        console.log(privKey)
         return privKey
-
     })
+
 }
 
 var getPublicKeys = function(uid){
     db = admin.database();
-    db.ref().child("PubKeys/" + uid).once('value').then(function(snapshot){
+    return db.ref().child("PubKeys/" + uid).once('value').then(function(snapshot){
         var key = snapshot.val().PubKey;
         public = decryptKey(key)
         return public
+    }).catch (function(err){
+        res.send(err);
     })
 }
 
 var getPass = function(uid){
     db = admin.database();
-    db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
+    return db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
         var key = snapshot.val().passphrase;
         passphrase = decryptKey(key)
         return passphrase
@@ -190,25 +190,125 @@ var getPass = function(uid){
     })
 }
 
+var readPubKey = async (key) => {
+    var k = (await openpgp.key.readArmored(key)).keys;
+    return k
+}
 
 api.post("/:userid/encrypt", function (req,res) {
     var message = req.body.message
     var uid = req.params.userid
-    getPrivKeys(uid).then((keys) =>{
-
-    }).catch (function (err){
-        res.send(err)
+    var pubKeys = getPublicKeys(uid);
+    pubKeys.then((pubKeys) => {
+        var decryptedPublic = readPubKey(pubKeys);
+        decryptedPublic.then((decryptedPublic) => {
+            var options = {
+                message: openpgp.message.fromText(message),
+                publicKeys: decryptedPublic,
+            }
+            openpgp.encrypt(options).then((ciphertext) => {
+                encryptedMessage = ciphertext.data;
+                res.status(200).format({
+                    text: function(){
+                        res.send(encryptedMessage)
+                    }
+                })
+            }).catch(function (err){
+                res.send(err);
+            })
+        }).catch(function (err){
+            res.send(err);
+        })
+    }).catch(function (err){
+        res.send(err);
     })
+})   
 
-});
+var readMessage = async (message) => {
+    m =  await openpgp.message.readArmored(message)
+    return m
+}
+
+var decryptPrivKey = async (key,pass) => {
+    priv = (await openpgp.key.readArmored(key)).keys[0]
+    await priv.decrypt(pass)
+    return priv
+}
+
+api.post("/:userid/decrypt", function (req,res) {
+    var message = req.body.message;
+    console.log(message);
+    var uid = req.params.userid;
+    var privKey = getPrivKeys(uid);
+    privKey.then( (privKey) => {
+        console.log("got key")
+        pass = getPass(uid);
+        pass.then( (pass) => {
+            console.log('got pass')
+            var key = decryptPrivKey(privKey,pass);
+            key.then((key)=>{
+                console.log("decrypted key")
+                var text = readMessage(message);
+                text.then((text) => {
+                    console.log("read text")
+                    var options = {
+                        message: text,
+                        privateKeys: key
+                    }
+                    openpgp.decrypt(options).then(plaintext => {
+                        res.json({
+                            status:200,
+                            message: 'data decrypted',
+                            data: plaintext
+                        })
+                    }).catch(function (error){
+                        res.send(error)
+                    })
+                }).catch(function (error){
+                    res.send(error)
+                }) 
+            }).catch(function(error){
+                res.send(error)
+            })
+        }).catch(function(error){
+            res.send(error)
+        })
+    }).catch(function(error){
+        res.send(error)
+    })
+})
 
 
-
+api.get('/:userid/post', function (req,res){
+    var uid = req.params.userid;
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            admin.database().ref().child('Posts').orderByChild('user_id').equalTo(uid).once('value').then(function (snapshot){
+                var posts = snapshot.val();
+                console.log(posts)
+                res.status(200).json({
+                    status: 200,
+                    message: 'Users Post retrieved succesfully',
+                    data: posts
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        } else {
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
 
 
 
 // the following is for the 2 factor auth
- var setSecretKey = function (key, uid){
+var setSecretKey = function (key, uid){
      db.ref().child("Users/" + uid + "/token").set(key)
  }
 
