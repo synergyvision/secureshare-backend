@@ -5,7 +5,9 @@ var apiLogout= require("./routes/logout");
 var apiProfile= require("./routes/profile");
 var apiPost = require("./routes/posts");
 var apiComments = require("./routes/comment");
-
+var apiContacts = require("./routes/contacts");
+var apiChats = require("./routes/chats");
+var apiMessage = require("./routes/messages");
 
 var admin = require("firebase-admin");
 var firebase = require("firebase");
@@ -34,6 +36,9 @@ app.use("/logout", apiLogout);
 app.use("/profile",apiProfile);
 app.use("/posts", apiPost);
 app.use("/comments", apiComments);
+app.use("/contacts",apiContacts);
+app.use("/chats", apiChats);
+app.use("/messages",apiMessage);
 
 app.listen(3000, function() {
     console.log("Express app started on port 3000.");

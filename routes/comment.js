@@ -106,7 +106,7 @@ api.delete('/:commentId', function (req,res){
         } else{
             res.json({
                 status: 401,
-                message: 'you need to log in to acces this content'
+                message: 'you need to log in to access this content'
             }) 
         }
     })

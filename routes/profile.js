@@ -31,23 +31,30 @@ api.use(function(req, res, next) {
   });
  
  api.get("/:userid", function (req,res){
-    var db = admin.database();
-    var uid = req.params.userid;
-    console.log(uid);
-    db.ref().child('Users/' + uid).once("value").then( function (snapshot){
-        var user = snapshot.val();
-        res.status(200).json({
-            status: 200,
-            message: "user data retrieved",
-            content: user
-        })
-    }).catch(function (error){
-        res.json({
-            status: error.code,
-            message: error.message
-        })
-    })
-
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            var db = admin.database();
+            var uid = req.params.userid;
+            console.log(uid);
+            db.ref().child('Users/' + uid).once("value").then( function (snapshot){
+                var user = snapshot.val();
+                res.status(200).json({
+                    status: 200,
+                    message: "user data retrieved",
+                    content: user
+                })
+            }).catch(function (error){
+                res.json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })        
 })
 
 api.put("/:userid" , function (req,res){
@@ -132,28 +139,36 @@ var storePrivateKey = function (uid,Pass,Key){
 
 // generating a new pgp key pair
 api.post("/:userid/keys", function (req,res){
-    var uid = req.params.userid;
-    var options = {
-        userIds: [{ name: req.body.name, email: req.body.email}],
-        numBits: 512,
-        passphrase: req.body.passphrase,
-    }
-    console.log("Generating Keys")
-    openpgp.generateKey(options).then(function(key){
-        var privkey = key.privateKeyArmored;
-        var pubkey = key.publicKeyArmored;
-        var revocationCertificate = key.revocationCertificate;
-        console.log("The keys have been generated");
-        console.log("Asegurandolas en BD")
-        storePublicKey(uid,pubkey)
-        console.log("llave publica guardada")
-        storePrivateKey(uid,req.body.passphrase,privkey)
-        res.json({
-            status:200,
-            message: "user Keys have been created and stored"
-        })
-    }).catch(function (error){
-        res.send(error);
+    firebase.auth().onAuthStateChanged ( function (user){
+        if (user){
+            var uid = req.params.userid;
+            var options = {
+                userIds: [{ name: req.body.name, email: req.body.email}],
+                numBits: 512,
+                passphrase: req.body.passphrase,
+            }
+            console.log("Generating Keys")
+            openpgp.generateKey(options).then(function(key){
+                var privkey = key.privateKeyArmored;
+                var pubkey = key.publicKeyArmored;
+                var revocationCertificate = key.revocationCertificate;
+                console.log("The keys have been generated");
+                console.log("Asegurandolas en BD")
+                storePublicKey(uid,pubkey)
+                console.log("llave publica guardada")
+                storePrivateKey(uid,req.body.passphrase,privkey)
+                res.json({
+                    status:200,
+                    message: "user Keys have been created and stored"
+                })
+            }).catch(function (error){
+                res.send(error);
+            })
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }    
     })
 
 })
@@ -196,31 +211,39 @@ var readPubKey = async (key) => {
 }
 
 api.post("/:userid/encrypt", function (req,res) {
-    var message = req.body.message
-    var uid = req.params.userid
-    var pubKeys = getPublicKeys(uid);
-    pubKeys.then((pubKeys) => {
-        var decryptedPublic = readPubKey(pubKeys);
-        decryptedPublic.then((decryptedPublic) => {
-            var options = {
-                message: openpgp.message.fromText(message),
-                publicKeys: decryptedPublic,
-            }
-            openpgp.encrypt(options).then((ciphertext) => {
-                encryptedMessage = ciphertext.data;
-                res.status(200).format({
-                    text: function(){
-                        res.send(encryptedMessage)
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            var message = req.body.message
+            var uid = req.params.userid
+            var pubKeys = getPublicKeys(uid);
+            pubKeys.then((pubKeys) => {
+                var decryptedPublic = readPubKey(pubKeys);
+                decryptedPublic.then((decryptedPublic) => {
+                    var options = {
+                        message: openpgp.message.fromText(message),
+                        publicKeys: decryptedPublic,
                     }
+                    openpgp.encrypt(options).then((ciphertext) => {
+                        encryptedMessage = ciphertext.data;
+                        res.status(200).format({
+                            text: function(){
+                                res.send(encryptedMessage)
+                            }
+                        })
+                    }).catch(function (err){
+                        res.send(err);
+                    })
+                }).catch(function (err){
+                    res.send(err);
                 })
             }).catch(function (err){
                 res.send(err);
             })
-        }).catch(function (err){
-            res.send(err);
-        })
-    }).catch(function (err){
-        res.send(err);
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }    
     })
 })   
 
@@ -236,46 +259,54 @@ var decryptPrivKey = async (key,pass) => {
 }
 
 api.post("/:userid/decrypt", function (req,res) {
-    var message = req.body.message;
-    console.log(message);
-    var uid = req.params.userid;
-    var privKey = getPrivKeys(uid);
-    privKey.then( (privKey) => {
-        console.log("got key")
-        pass = getPass(uid);
-        pass.then( (pass) => {
-            console.log('got pass')
-            var key = decryptPrivKey(privKey,pass);
-            key.then((key)=>{
-                console.log("decrypted key")
-                var text = readMessage(message);
-                text.then((text) => {
-                    console.log("read text")
-                    var options = {
-                        message: text,
-                        privateKeys: key
-                    }
-                    openpgp.decrypt(options).then(plaintext => {
-                        res.json({
-                            status:200,
-                            message: 'data decrypted',
-                            data: plaintext
-                        })
-                    }).catch(function (error){
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            var message = req.body.message;
+            console.log(message);
+            var uid = req.params.userid;
+            var privKey = getPrivKeys(uid);
+            privKey.then( (privKey) => {
+                console.log("got key")
+                pass = getPass(uid);
+                pass.then( (pass) => {
+                    console.log('got pass')
+                    var key = decryptPrivKey(privKey,pass);
+                    key.then((key)=>{
+                        console.log("decrypted key")
+                        var text = readMessage(message);
+                        text.then((text) => {
+                            console.log("read text")
+                            var options = {
+                                message: text,
+                                privateKeys: key
+                            }
+                            openpgp.decrypt(options).then(plaintext => {
+                                res.json({
+                                    status:200,
+                                    message: 'data decrypted',
+                                    data: plaintext
+                                })
+                            }).catch(function (error){
+                                res.send(error)
+                            })
+                        }).catch(function (error){
+                            res.send(error)
+                        }) 
+                    }).catch(function(error){
                         res.send(error)
                     })
-                }).catch(function (error){
+                }).catch(function(error){
                     res.send(error)
-                }) 
+                })
             }).catch(function(error){
                 res.send(error)
             })
-        }).catch(function(error){
-            res.send(error)
-        })
-    }).catch(function(error){
-        res.send(error)
-    })
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        } 
+    })       
 })
 
 
@@ -306,8 +337,95 @@ api.get('/:userid/post', function (req,res){
 })
 
 
+api.get('/:userid/contacts', function (req,res){
+    var uid = req.params.userid;
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            admin.database().ref().child('Users/' + uid + '/contacts').once('value').then(function (snapshot){
+                var contacts = snapshot.val();
+                console.log(contacts);
+                res.status(200).json({
+                    status: 200,
+                    message: 'User contacts retrieved succesfully',
+                    data: contacts
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.json({
+                status: 401,
+                message: 'You need to be loggen in to access content'
+            })
+        }
+    })
+})
 
-// the following is for the 2 factor auth
+var getChats = function (chatKeys){
+    chats =[];
+    console.log('here');
+    
+}
+
+api.get('/:userid/chats', function (req,res){
+    uid = req.params.userid;
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            chats = []
+            keys = []
+            indice = 0;
+            data = admin.database().ref('Chat_participants').orderByKey();
+            data.once('value').then(function (snapshot){
+                if (snapshot){
+                    snapshot.forEach(function (childSnapshot){
+                        var key = childSnapshot.key;
+                        keys.push(key);
+                    })
+                    for (var i = 0; i < keys.length;i++){
+                         admin.database().ref().child('Chats/' + keys[i] ).once('value').then(function (snap){
+                               if (snap){
+                                   key = snap.key
+                                   val = snap.val()
+                                   format = {
+                                       [key]: val
+                                   }     
+                                chats.push(format);
+                                indice++;
+                                if (indice == (keys.length)){
+                                    res.status(200).json({
+                                        status: 200,
+                                        message: 'User chats retrieved',
+                                        data: chats
+                                    })
+                                }
+                                                                                    
+                               }
+                           }).catch(function (error){
+                               res.json({
+                                   status: error.code,
+                                   message: error.message
+                            })
+                         })                      
+                    };                
+                }    
+            })
+        }else{
+            res.json({
+                status: 401,
+                message: 'You need to be loggen in to access content'
+            })
+        }
+    })
+})
+
+
+
+
+
+// the following is for the 2 factor auth (untested)
 var setSecretKey = function (key, uid){
      db.ref().child("Users/" + uid + "/token").set(key)
  }

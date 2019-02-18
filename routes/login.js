@@ -20,8 +20,6 @@ api.post("/", function (req, res){
 
     var db = admin.database();
     var au = firebase.auth();    
-    console.log(req.body.email);
-    console.log(req.body.password);
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
             return res.json({
                 status: 200,
