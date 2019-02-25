@@ -8,6 +8,8 @@ var apiComments = require("./routes/comment");
 var apiContacts = require("./routes/contacts");
 var apiChats = require("./routes/chats");
 var apiMessage = require("./routes/messages");
+var apiSurveys = require("./routes/surveys");
+var apiFiles = require("./routes/files");
 
 var admin = require("firebase-admin");
 var firebase = require("firebase");
@@ -24,6 +26,10 @@ db = admin.initializeApp({
 });
 
 
+
+const firestore = admin.firestore();
+const settings = {timestampsInSnapshots: true};
+firestore.settings(settings);
 var app = express();
 
 app.get("/", function(req,res){
@@ -39,6 +45,8 @@ app.use("/comments", apiComments);
 app.use("/contacts",apiContacts);
 app.use("/chats", apiChats);
 app.use("/messages",apiMessage);
+app.use("/surveys",apiSurveys);
+app.use("/files", apiFiles);
 
 app.listen(3000, function() {
     console.log("Express app started on port 3000.");

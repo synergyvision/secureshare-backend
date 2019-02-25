@@ -16,14 +16,20 @@ api.use(function(req, res, next) {
 api.get('/:userid/requests', function (req, res){
     uid = req.params.userid,
     firebase.auth().onAuthStateChanged(function (user){
+        requests = []
         if (user) {
-            admin.database().ref().child('Requests').orderByChild('id_to').equalTo(uid).on('child_added' , function (snapshot){
-                requests = snapshot.val();
-                    res.status(200).json({
-                        status: 200,
-                        message: 'This are the users friends requests',
-                        data: requests
-                    })
+            admin.firestore().collection('Requests').where('id_to', '==', uid).get().then(function (snapshot){
+                snapshot.forEach(doc => {
+                    request = {
+                        [doc.id] : doc.data()
+                    }
+                    requests.push(request);
+                })
+                res.status(200).json({
+                    status: 200,
+                    message: 'This are the users friends requests',
+                    data: requests
+                })
             }).catch(function (error){
                 res.status(400).json({
                     status: error.code,
@@ -50,19 +56,18 @@ api.post('/:userid/requests', function (req, res){
                 id_from: uid,
                 status: false
             }
-            request = admin.database().ref().child('Requests').push();
-            request.set(requestData, function (error){
-                if (error){
-                    res.json({
-                        status: error.code,
-                        message: error.message
-                    })
-                }else{
-                    res.status(201).json({
-                        status: 201,
-                        message: 'The friend request has been sent'
-                    })
-                }
+            request = admin.firestore().collection('Requests');
+            request.add(requestData).then (function (){
+                res.status(201).json({
+                    status: 201,
+                    message: 'The friend request has been sent'
+                })
+            
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
             })
         }else{
             res.status(401).json({
@@ -84,22 +89,26 @@ api.put('/:userid/requests/:requestid', function (req,res){
                 newRequestData = {
                     status: true
                 }
-                var request = admin.database().ref().child('Requests/' + request_id).update(newRequestData);
+                var request = admin.firestore().collection('Requests').doc(request_id).update(newRequestData);
                 request.then(function (){
                     console.log('actualice el request' + request_id)
-                    admin.database().ref().child('Requests/' + request_id).once('value').then(function (snapshot){
-                        sender = snapshot.val().id_from;
-                        dataUpdate = {}
-                        dataUpdate['Users/' + sender + '/contacts'] = {[uid]: true}
-                        dataUpdate['Users/' + uid + '/contacts'] = {[sender]: true}
-                        update = admin.database().ref().update(dataUpdate)
-                        console.log('Actualizadas listas de contactos de' + sender+ 'y' + uid)
+                    admin.firestore().collection('Requests').doc(request_id).get().then(function (snapshot){
+                        sender = snapshot.get('id_from');
+                        var update = admin.firestore().collection('Users').doc(uid).collection('contacts').add({userId: sender, status: true})
                         update.then(function (){
-                            res.status(200).json({
-                                status: 200,
-                                message: 'Request accepted succesfully'
+                            var act = admin.firestore().collection('Users').doc(sender).collection('contacts').add({userId: uid,status: true})
+                            act.then(function (){
+                                console.log('User contacts updated');
+                                res.status(200).json({
+                                    status: 200,
+                                    message: 'Contact request accepted'
+                                })
+                            }).catch(function(){
+                                res.json({
+                                    status: error.code,
+                                    message: error.message
+                                })
                             })
-                            
                         }).catch (function (error){
                             res.json({
                                 status: error.code,
@@ -119,7 +128,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
                     })
                 })
             }else {
-                admin.database().ref().child('Requests/' + request_id).remove();
+                admin.firestore().collection('Requests').doc(request_id).remove();
                 res.json({
                     status: 200,
                     message: 'The request has been rejected'
@@ -138,34 +147,35 @@ api.put('/:userid/requests/:requestid', function (req,res){
 api.delete('/:userid', function (req,res){
     uid = req.params.userid
     id_user = req.body.user_id // the user to unfriend
-    console.log(uid)
-    console.log(id_user)
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            console.log('aca');
-           var user = admin.database().ref().child('Users/' + uid + '/contacts').update({[id_user]: null})
-            user.then(function (){
-                console.log('first');
-                var contact = admin.database().ref().child('Users/' + id_user + '/contacts').update({[uid]: null})
-                contact.then(function (){
-                    console.log('second')
-                    res.status(200).json({
-                        status: 200,
-                        message: 'Contact unfriended'
+            admin.firestore().collection('Users').doc(uid).collection('contacts').where('userId', '==', id_user).get().then(function (snapshot){
+            snapshot.forEach(doc => {
+                docId = doc.id;
+                admin.firestore().collection('Users').doc(uid).collection('contacts').doc(docId).delete();
+                console.log('borreo el primero')
+                admin.firestore().collection('Users').doc(id_user).collection('contacts').where('userId', '==', uid).get().then(function (snap){
+                    snap.forEach( docs => {
+                        id = docs.id;
+                        admin.firestore().collection('Users').doc(id_user).collection('contacts').doc(id).delete();
+                        res.status(200).json({
+                            status: 200,
+                            message: 'The user has been unfriended'
+                        })
                     })
-                }).catch(function(error){
-                    res.json({
+                }).catch (function (error){
+                    res.status(400).json({
                         status: error.code,
                         message: error.message
                     })
                 })
-            }).catch(function (error){
-                res.json({
-                    status: error.code,
-                    message: error.message
-                })
             })
-
+           }).catch( function(error){
+               res.status(400).json({
+                   status: error.code,
+                   message: error.message
+               })
+           })
         }else{
             res.json({
                 status: 401,

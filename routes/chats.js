@@ -15,13 +15,24 @@ api.use(function(req, res, next) {
 
 api.get('/', function (req, res){
     firebase.auth().onAuthStateChanged(function (user){
+        chats = []
         if (user){
-            admin.database().ref().child('Chats').once('value').then(function (snapshot){
-                var chats = snapshot.val();
+            admin.firestore().collection('Chats').get().then(function (snapshot){
+                snapshot.forEach( doc => {
+                    chat = {
+                        [doc.id]: doc.data()
+                    }
+                    chats.push(chat);
+                })
                 res.status(200).json({
                     status: 200,
                     message: 'All the chats have been Retrieved',
                     data: chats
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
                 })
             })   
         }else{
@@ -40,28 +51,24 @@ api.post('/', function (req, res){
             last_message = req.body.last_message
             sent = Date.now()
             console.log(sent)
-            var chat = admin.database().ref().child('Chats').push()
+            var chat = admin.firestore().collection('Chats')
             var newChatData = {
                 title: title,
-                last_message: last_message,
                 timestamp: sent
             }
             console.log('got variables')
-            var chatData = chat.set(newChatData, function (error){
-                if (error){
-                    res.status(400).json({
-                        status: error.code,
-                        message: error.message
-                    })
-                    console.log('there has been and error:' + error);
-                } else {
-                    console.log('chat created')
-                    res.status(201).json({
-                        status: 201,
-                        message: "Chat created succesfully"
-                    })
-                }
-            })
+           chat.add(newChatData).then( function () {
+                res.status(201).json({
+                    status: 201,
+                    message: 'chat created succesfully'
+                })
+
+           }).catch(function (error){
+               res.status(400).json({
+                   status: error.code,
+                   message: error.message
+               })
+           })
         } else{
             res.status(401).json({
                 status: 401,
@@ -71,7 +78,7 @@ api.post('/', function (req, res){
     })    
 })
 
-api.delete('/:chatid', function (req, res){
+/*api.delete('/:chatid', function (req, res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
             id = req.params.chatid;
@@ -89,7 +96,7 @@ api.delete('/:chatid', function (req, res){
             })
         }
     })
-})
+})*/
 
 api.post('/:chatid/participants', function (req,res){
     id = req.params.chatid;
@@ -99,7 +106,7 @@ api.post('/:chatid/participants', function (req,res){
         if (user){
             id_participants = req.body.participants
             newMembers = JSON.parse(id_participants)
-            update = admin.database().ref().child('Chat_participants/' + id).update(newMembers);
+            update = admin.firestore().collection('Chats').doc(id).collection('Participants').doc('Members').update(newMembers)
             update.then( function (){
                 console.log('Se han insertado miembros en el chat');
                 res.status(201).json({
@@ -126,12 +133,20 @@ api.delete('/:chatid/participants/:participantsid', function (req,res){
     participant = req.params.participantsid
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            admin.database().ref().child("Chat_participants/" + id_chat + "/" + participant).remove();
-            res.status(400).json({
-                status: 200,
-                message: 'Participant deleted from chat'
+            var deletes = admin.firestore().collection('Chats').doc(id_chat).collection('Participants').doc('Members').update({
+                [participant]: null
             })
-
+            deletes.then(function (){
+                res.status(200).json({
+                    status: 200,
+                    message: 'Participant deleted from chat'
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
         }else {
             res.status(401).json({
                 status: 402,

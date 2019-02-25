@@ -15,13 +15,24 @@ api.use(function(req, res, next) {
 
 api.get('/', function (req,res){
     firebase.auth().onAuthStateChanged( function (user){
+        comments =[]
         if (user){
-            admin.database().ref().child('Comments').once('value').then(function (snapshot){
-                var comments = snapshot.val();
+            admin.firestore().collection('Comments').get().then(function (snapshot){
+                snapshot.forEach(doc => {
+                    comment = {
+                        [doc.id]: doc.data()
+                    }
+                    comments.push(comment)
+                })
                 res.status(200).json({
                     status: 200,
                     message: 'Comments Retrieved',
                     data: comments
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
                 })
             })    
         }else{
@@ -36,25 +47,23 @@ api.get('/', function (req,res){
 api.post('/', function (req, res) {
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            var comment = admin.database().ref().child('Comments').push();
+            var comment = admin.firestore().collection('Comments');
             var commentData = {
                 content: req.body.content,
                 user_id: req.body.user_id,
                 post_id: req.body.post_id,
                 image_id: req.body.image_id
             }
-            comment.set(commentData , function(error) {
-                if (error){
-                    res.json({
-                        status: error.code,
-                        message: error.message
-                    })
-                } else{
-                    res.json({
-                        status: 200,
-                        message: 'Succesfully published comment'
-                    })
-                }
+            comment.add(commentData).then(function (){
+                res.status(201).json({
+                    status:201,
+                    message: 'Comment succesfully created'
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
             })
         }else{
             res.json({
@@ -73,7 +82,7 @@ api.put('/:commentId', function (req,res){
                 content: req.body.content,
                 image_id: req.body.image_id
             }
-            var oldData = admin.database().ref().child('Comments/' + comment_id).update(newCommentData);
+            var oldData = admin.firestore().collection('Comments').doc(comment_id).update(newCommentData);
             oldData.then(function (){
                 res.json({
                     status: 200,
@@ -98,7 +107,7 @@ api.delete('/:commentId', function (req,res){
     comment_id =req.params.commentId
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
-            admin.database().ref().child('Comments/' + comment_id).remove();
+            var comment = admin.firestore().collection('Comments').doc(comment_id).delete();
             res.json({
                 status: 200,
                 message: 'The comment has been deleted'

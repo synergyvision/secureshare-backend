@@ -1,6 +1,6 @@
 var express = require("express");
 var admin = require("firebase-admin");
-var firebase= require("firebase");
+var fire = require("firebase");
 var bodyParser = require("body-parser");
 var bcrypt = require("bcrypt");
 var nodemailer = require("nodemailer");
@@ -17,9 +17,8 @@ api.use(function(req, res, next) {
  
 
 api.post("/", function (req, res){
-
     var db = admin.database();
-    var au = firebase.auth();    
+    var au = fire.auth();    
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
             return res.json({
                 status: 200,

@@ -33,11 +33,11 @@ api.use(function(req, res, next) {
  api.get("/:userid", function (req,res){
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
-            var db = admin.database();
+            var db = admin.firestore();
             var uid = req.params.userid;
-            console.log(uid);
-            db.ref().child('Users/' + uid).once("value").then( function (snapshot){
-                var user = snapshot.val();
+            db.collection('Users').doc(uid).get().then( function (snapshot){
+                console.log(snapshot.data())
+                var user = snapshot.data();
                 res.status(200).json({
                     status: 200,
                     message: "user data retrieved",
@@ -58,7 +58,7 @@ api.use(function(req, res, next) {
 })
 
 api.put("/:userid" , function (req,res){
-    var db = admin.database();
+    var db = admin.firestore();
     var auth = firebase.auth();
     var uid = req.params.userid;
     updateData = {
@@ -68,7 +68,7 @@ api.put("/:userid" , function (req,res){
         phone: req.body.phone,
         username: req.body.username
     }
-    db.ref().child('Users/' + uid).update(updateData);
+    db.collection('Users').doc(uid).update(updateData);
     console.log("se ha actualizado en la base de datos")
     if (req.body.email != 'undefined'){
         auth.onAuthStateChanged(function (user){
@@ -101,39 +101,37 @@ var decryptKey = function(key){
 }
 
 var storePublicKey =  function (uid,key){
-    var db = admin.database();
-    securedKey = encryptKey(key);
-    postPBData = db.ref().child("PubKeys/" + uid);
+    var db = admin.firestore();
+    console.log(uid,key)
+    postPBData = db.collection('PubKeys').doc(uid);
     var newPostPBData = postPBData.set({
-        PubKey: securedKey,
-    }, function (error){
-        if (error){
-            res.json({
-                status: error.code,
-                message: error.message
-            })
-        }
-    }); 
-    console.log("Llave publica resguardada") 
+        PubKey: key,
+    }).then(function (){ 
+        console.log("Llave publica resguardada") 
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.code,
+            message: error.message
+        })
+    })    
 }
 
 var storePrivateKey = function (uid,Pass,Key){
-    var db = admin.database();
+    var db = admin.firestore();
     var securedKey = encryptKey(Key)
     var securedPass = encryptKey(Pass)
-    postPKData = db.ref().child("PrivKeys/" + uid);
+    postPKData = db.collection('PrivKeys').doc(uid);
     var newPKData = postPKData.set({
         PrivKey: securedKey,
         passphrase: securedPass,
-    }, function (error){
-        if (error){
-            res.json({
-                status: error.code,
-                message: error.message
-            })
-        }    
-    });
-    console.log("llave privada y pass asegurados")
+    }).then( function(){
+        console.log("llave privada y pass asegurados")
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.code,
+            message: error.message
+        })
+    })
 }
 
 
@@ -144,7 +142,7 @@ api.post("/:userid/keys", function (req,res){
             var uid = req.params.userid;
             var options = {
                 userIds: [{ name: req.body.name, email: req.body.email}],
-                numBits: 512,
+                numBits: 4096,
                 passphrase: req.body.passphrase,
             }
             console.log("Generating Keys")
@@ -174,9 +172,9 @@ api.post("/:userid/keys", function (req,res){
 })
 
 var getPrivKeys = function (uid){
-    db = admin.database();
-   return db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
-        var key = snapshot.val().PrivKey;
+    db = admin.firestore();
+   return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
+        var key = snapshot.get(PrivKey);
         privKey = decryptKey(key)
         return privKey
     })
@@ -184,20 +182,21 @@ var getPrivKeys = function (uid){
 }
 
 var getPublicKeys = function(uid){
-    db = admin.database();
-    return db.ref().child("PubKeys/" + uid).once('value').then(function(snapshot){
-        var key = snapshot.val().PubKey;
-        public = decryptKey(key)
-        return public
+    db = admin.firestore();
+    return db.collection('PubKeys').doc(uid).get().then(function(snapshot){
+        var key = snapshot.get('PubKey');
+        console.log(snapshot.data())
+        console.log(key);
+        return key
     }).catch (function(err){
         res.send(err);
     })
 }
 
 var getPass = function(uid){
-    db = admin.database();
-    return db.ref().child("PrivKeys/" + uid).once('value').then(function(snapshot){
-        var key = snapshot.val().passphrase;
+    db = admin.firestore();
+    return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
+        var key = snapshot.get(passphrase);
         passphrase = decryptKey(key)
         return passphrase
     }).catch (function(err){
@@ -217,6 +216,7 @@ api.post("/:userid/encrypt", function (req,res) {
             var uid = req.params.userid
             var pubKeys = getPublicKeys(uid);
             pubKeys.then((pubKeys) => {
+                console.log(pubKeys);
                 var decryptedPublic = readPubKey(pubKeys);
                 decryptedPublic.then((decryptedPublic) => {
                     var options = {

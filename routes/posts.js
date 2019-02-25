@@ -15,13 +15,22 @@ api.use(function(req, res, next) {
 
 api.get('/', function (req,res){
     firebase.auth().onAuthStateChanged( function (user){
+        posts = [];
         if (user){
-            admin.database().ref().child('Posts').once('value').then(function (snapshot){
-                var posts = snapshot.val();
+            admin.firestore().collection('Posts').get().then(function (snapshot){
+                snapshot.forEach( doc => {
+                    post = doc.data()
+                    posts.push({[doc.id]: post});
+                })
                 res.status(200).json({
                     status: 200,
                     message: 'Post Retrieved',
                     data: posts
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
                 })
             })    
         }else{
@@ -37,25 +46,23 @@ api.post('/', function (req,res){
    
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            var postData = admin.database().ref().child('Posts').push()
-            var newPostData = postData.set({
+            var postData = admin.firestore().collection('Posts');
+            var newPostData = postData.add({
                  content: req.body.content,
                  user_id: req.body.uid,
                  image_id: req.body.image_id
-            }, function (error){
-                if (error){
-                    res.json({
-                        status: error.code,
-                        message: error.message
-                    })
-                } else {
-                    res.json({
-                        status: 201,
-                        message: 'Post uploaded succesfully'
-                    })
-                }    
-            });
-
+            }).then(ref => {
+                console.log('Post created with id: ', ref.id)
+                res.status(201).json({
+                    status: 200,
+                    message: 'Post generated id: ' + ref.id
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
         }else{
             res.json({
                 status: 401,
@@ -74,7 +81,7 @@ api.put('/:postId', function (req,res){
                 content: req.body.content,
                 image_id: req.body.image_id
             }
-            var oldData = admin.database().ref().child('Posts/' + post_id).update(postData);
+            var oldData = admin.firestore().collection('Posts').doc(post_id).update(postData);
             oldData.then(function (){
                 res.json({
                     status: 200,
@@ -100,11 +107,19 @@ api.delete('/:postId', function (req,res){
     post_id = req.params.postId
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
-            admin.database().ref().child('Posts/' + post_id).remove();
-            res.json({
-                status: 200,
-                message: 'The post has been deleted'
+            var deleteDoc = admin.firestore().collection('Posts').doc(post_id).delete();
+            deleteDoc.then(function (){
+                res.json({
+                    status: 200,
+                    message: 'The post has been deleted'
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: 400,
+                    message: 'There was an error deleting posts'
+                })
             })
+            
         } else{
             res.json({
                 status: 401,
