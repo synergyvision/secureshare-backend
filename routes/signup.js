@@ -20,7 +20,6 @@ api.post("/", function (req, res){
     db = admin.firestore();
     auth = firebase.auth();
     // first we check if the username is available
-    console.log(req.body.usuario)
     db.collection('Users').where('username','==', req.body.usuario).get().then(snapshot => {
         if (snapshot.empty){ 
             // if the username doesnt exist we connect to firebase auth to create the new user
