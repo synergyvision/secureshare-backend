@@ -14,14 +14,33 @@ var apiFiles = require("./routes/files");
 var admin = require("firebase-admin");
 var firebase = require("firebase");
 
-var serviceAccount = require("./credentials.json");
+//initialize firebase
 
-var config = require("./credentials2.json");
+var config2 = {
+  apiKey: process.env.firebase_apikey,
+  authDomain: process.env.firebase_authDomain,
+  databaseURL: process.env.firebase_databaseURL
+}
 
-firebase.initializeApp(config);
+firebase.initializeApp(config2);
+
+//initialize firebase admin
+
+var config = {
+  type: process.env.firebase_type,
+  project_id: process.env.firebase_project_id,
+  private_key_id: process.env.firebase_private_key_id,
+  private_key: process.env.firebase_private_key,
+  client_email: process.env.firebase_client_email,
+  client_id: process.env.firebase_client_id,
+  auth_uri: process.env.firebase_auth_uri,
+  token_uri: process.env.firebase_token_uri,
+  auth_provider_x509_cert_url: firebase_auth_provider_x509_cert_url,
+  client_x509_cert_url: process.env.firebase_client_x509_cert_url
+}
 
 db = admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(config),
   databaseURL: "https://vision-sharekey.firebaseio.com",
   storageBucket: "gs://vision-sharekey.appspot.com"
 });
