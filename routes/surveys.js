@@ -16,9 +16,15 @@ api.use(function(req, res, next) {
 api.get('/', function (req,res){
   firebase.auth().onAuthStateChanged( function (user){
       if (user){
-        admin.database().ref().child('Surveys').once('value').then( function (snapshot){
+        surveys = [];
+        admin.firestore().collection('Surveys').get().then( function (snapshot){
             if (snapshot){
-              var surveys = snapshot.val();
+              snapshot.forEach( doc => {
+                survey = {
+                  [doc.id]: doc.data()
+                }
+                surveys.push(survey);
+              })
               res.status(200).json({
                   status: 200,
                   message: 'Surveys retrieved',
@@ -51,20 +57,17 @@ api.post('/', function (req,res){
         title: req.body.title,
         uid: req.body.id_user
       }
-      var key = admin.database().ref().child('Surveys/').push().key
-      admin.database().ref().child('Surveys/' + key).set(newSurveyData, function (error){
-        if (error){
-          res.status(400).json({
-              status: 400,
-              message: 'Could not save the new Survey'
-          })
-        } else{
+      admin.firestore().collection('Surveys').add(newSurveyData).then(function (ref){
           res.status(201).json({
             status: 201,
             message: 'Survey store on the database',
-            key: key
+            key: ref.id
           })
-        }
+      }).catch(function (error){
+          res.status(400).json({
+            status: error.code,
+            message: error.message
+          })
       })
     }else{
       res.status(401).json({
@@ -81,7 +84,7 @@ api.put('/:surveyid' , function (req,res){
         title: req.body.title
       }
       survey = req.params.surveyid
-      admin.database().ref().child('Surveys/' + survey).update(newSurveyData).then(function (){
+      admin.firestore().collection('Surveys').doc(survey).update(newSurveyData).then(function (){
         res.status(200).json({
           status: 200,
           message: 'The survey has been updated'
@@ -105,14 +108,34 @@ api.delete('/:surveyid', function (req,res){
   firebase.auth().onAuthStateChanged(function (user){
     if (user){
       survey = req.params.surveyid
-      admin.database().ref().child('Surveys/' + survey).remove();
-      admin.database().ref().child('Questions/' + survey).remove();
-      admin.database().ref().child('Answers/' + survey).remove();
-      res.status(200).json({
-        status: 200,
-        message: 'The survey has been deleted'
+      deletes = admin.firestore().collection('Surveys').doc(survey);
+      deletes.collection('Questions').get().then( function (snapshot){
+        snapshot.forEach( doc => {
+          deletes.collection('Questions').doc(doc.id).collection('Answers').get().then(function (snap){
+            snap.forEach( docs => {
+              deletes.collection('Questions').doc(doc.id).collection('Answers').doc(docs.id).delete();
+              console.log('Deleted answer ' + docs.id)
+            })
+            deletes.collection('Questions').doc(doc.id).delete();
+            console.log('Deleted question ' + doc.id)
+          }).catch(function (error){
+              res.status(400).json({
+                status: error.code,
+                message: error.message
+               })
+          })
+        })
+        deletes.delete();
+        res.status(200).json({
+          status: 200,
+          message: 'Survey deleted'
+        })
+      }).catch(function (error){
+        res.status(400).json({
+            status: error.code,
+            message: error.message
+        })
       })
-
     }else {
       res.status(201).json({
         status: 401,
@@ -129,21 +152,18 @@ api.post('/:surveyid/question', function (req,res){
         var newQuestion = {
           content: req.body.content
         }
-        var key = admin.database().ref().child('Questions').push().key
-        admin.database().ref().child('Questions/' + survey + '/' + key).set(newQuestion, function (error){
-            if (error){
-                res.json({
-                  status: 400,
-                  message: 'There has been an error storing on the database'
-                })   
-            }else{
+        admin.firestore().collection('Surveys').doc(survey).collection('Questions').add(newQuestion).then( function (doc){
               res.status(201).json({
                 status: 201,
                 message: 'Question added to survey',
-                id_question: key,
+                id_question: doc.id,
                 id_survey: survey
               })
-            }
+        }).catch(function (error){
+            res.status(400).json({
+              status: error.code,
+              message: error.message
+            })
         })
     }else{
       res.status(401).json({
@@ -158,41 +178,31 @@ api.get('/:surveyid/question/', function (req,res){
   firebase.auth().onAuthStateChanged(function (user){
     if (user){
         surveys = req.params.surveyid
-        admin.database().ref().child('Surveys/' + surveys).once('value').then(function (snapshot){
+        questions =[];
+        admin.firestore().collection('Surveys').doc(surveys).collection('Questions').get().then(function (snapshot){
           if (snapshot){
-            survey = snapshot.child('title').val();
-            admin.database().ref().child('Questions/' + surveys).once('value').then( function (snapshot){
-              if (snapshot){
-                questions = snapshot.val();
-                res.status(200).json({
-                  status: 200,
-                  message: 'The survey has been retrieved',
-                  survey_title: survey,
-                  questions: questions
-                })
-              } else{
-                res.status(404).json({
-                  status: 404,
-                  message: 'This survey has no questions added'
-                })
+            snapshot.forEach(doc =>{
+              survey = {
+                [doc.id]: doc.data()
               }
-            }).catch(function (error){
-              res.status(400).json({
-                  status: error.code,
-                  message: error.message
-              })
+              questions.push(survey)
             })
-          } else{
+            res.status(200).json({
+                status: 200,
+                message: 'Survey questions retrieved',
+                data: questions
+            })
+          }else{
             res.status(404).json({
               status: 404,
-              message: 'No survey by that id found'
+              message: 'This survey has no questions'
             })
           }
         }).catch(function (error){
-          res.status(400).json({
-            status: error.code,
-            message: error.message
-          })
+            res.status(400).json({
+              status: error.code,
+              message: error.message
+            })
         })
     }else{
       res.status(401).json({
@@ -211,7 +221,7 @@ api.put('/:surveyid/question/:questionid', function (req,res){
       var newQuestionData = {
         content: req.body.content
       }
-      admin.database().ref().child('Questions/' + survey + '/' + question).update(newQuestionData).then(function (){
+      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).update(newQuestionData).then(function (){
         res.status(200).json({
           status: 200,
           message: 'The question has been updated'
@@ -236,11 +246,25 @@ api.delete('/:surveyid/question/:questionid', function (req,res){
     if (user){
       survey = req.params.surveyid
       question = req.params.questionid
-      admin.database().ref().child('Questions/' + survey + '/' + question).remove();
-      admin.database().ref().child('Answers/' + survey + '/' + question).remove();
-      res.status(200).json({
-        status: 200,
-        message: 'the question has been removed from the survey'
+      var deletes = admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question)
+      deletes.collection('Answers').get().then(function (snapshot){
+          if (snapshot){
+            snapshot.forEach( doc => {
+                deletes.collection('Answers').doc(doc.id).delete();
+                console.log('Deleted ' + doc.id)
+            })
+            deletes.delete();
+            res.status(200).json({
+              status: 200,
+              message: 'The question and its answers were deleted'
+            })
+          }
+          
+      }).catch(function (error){
+          res.status(400).json({
+              status: error.code,
+              message: error.message
+          })
       })
     }else{
       res.status(401).json({
@@ -249,41 +273,33 @@ api.delete('/:surveyid/question/:questionid', function (req,res){
       })
     }
   })
-}) 
+})
+
+
 
 api.get('/:surveyid/question/:questionid/answer', function (req, res){
   firebase.auth().onAuthStateChanged( function (user){
     if (user){
       survey = req.params.surveyid
       question = req.params.questionid
-      admin.database().ref().child('Questions/' + survey + '/' + question).once('value').then( function (snapshot){
+      answers = []
+      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').get().then( function (snapshot){
         if (snapshot){
-          question_title = snapshot.child('content').val();
-          admin.database().ref().child('Answers/' + survey + '/' + question).once('value').then( function (snap){
-            if (snap){
-              answers = snap.val();
-              res.status(200).json({
-                status:200,
-                message: 'Question and its answers retrieved',
-                question: question_title,
-                possible_answers: answers
-              })
-            }else{
-              res.status(200).json({
-                status:200,
-                message: 'The questions doenst have any answers yet '
-              })
+          snapshot.forEach(doc => {
+            answer = {
+              [doc.id]: doc.data(0)
             }
-          }).catch(function (error){
-            res.status(400).json({
-              status: error.code,
-              message: error.message
-            })
+            answers.push(answer);
+          })
+          res.status(200).json({
+            status: 200,
+            message: 'answers retrieved',
+            data: answers
           })
         }else{
           res.status(404).json({
-            status: 404,
-            message: 'No question found'
+            status:404,
+            message: 'No answers for this questions have been added'
           })
         }
       }).catch(function (error){
@@ -305,24 +321,22 @@ api.post('/:surveyid/question/:questionid/answer', function (req,res){
   firebase.auth().onAuthStateChanged(function (user){
     if (user){
       newAnswer = {
-        content: req.body.content
+        content: req.body.content,
+        votes: 0
       }
       survey = req.params.surveyid
       question = req.params.questionid
-      var key = admin.database().ref().child('Answers/' + survey + '/' + question).push().key
-      admin.database().ref().child('Answers/' + survey + '/' + question + '/' + key).set(newAnswer, function (error){
-        if (error){
-          res.status(400).json({
-            status:400,
-            message: 'there was an error inserting on the database' + erro
-          })
-        } else {
-          res.status(201).json({
+      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').add(newAnswer).then( function (doc){
+        res.status(201).json({
             status: 201,
-            message: 'The answer has been saved',
-            answer_id: key
-          })
-        }
+            message: 'Answer to question added',
+            key: doc.id
+        })
+      }).catch(function (error){
+        res.status(400).json({
+            status: error.code,
+            message: error.message
+        })
       })
     }else{
       res.status(401).json({
@@ -342,7 +356,56 @@ api.put('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
       var newAnswerData = {
         content: req.body.content
       }
-    console.log('dale')
+      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').doc(answer).update(newAnswerData).then(function (){
+        res.status(200).json({
+          status: 200,
+          message: 'Answer updated'
+        })
+      }).catch(function (error){
+          res.status(404).json({
+            status: error.status,
+            message: error.message
+          })
+      })
+    }else{
+      res.status(401).json({
+        status:401,
+        message: 'You need to be logged in to access content'
+      })
+    }
+  })
+})
+
+api.put('/:surveyid/question/:questionid/answer/:answerid/vote', function (req,res){
+  firebase.auth().onAuthStateChanged(function (user){
+    if (user){
+      survey = req.params.surveyid
+      question = req.params.questionid
+      answer = req.params.answerid
+       update = admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers');
+       update.doc(answer).get().then( function (snap){
+       var vote = snap.data();
+         vote.votes = ((vote.votes- 0) + (1-0))
+         newAnswerData = {
+           votes: vote.votes
+         }
+       update.doc(answer).update(newAnswerData).then(function (){
+          res.status(200).json({
+            status: 200,
+            message: 'Answer updated'
+          })
+        }).catch(function (error){
+            res.status(404).json({
+              status: error.status,
+              message: error.message
+            })
+        })
+      }).catch(function (error){
+        res.status(404).json({
+          status: error.status,
+          message: error.message
+        })
+      })  
     }else{
       res.status(401).json({
         status:401,
@@ -358,7 +421,7 @@ api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res
       survey = req.params.surveyid
       question = req.params.questionid
       answer = req.params.answerid
-      admin.database().ref().child('Answers/' + survey + '/' + question + '/' + answer).remove();
+      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').doc(answer).delete();
       res.status(200).json({
         status: 200,
         message: 'the answer has been removed from the survey'

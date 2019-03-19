@@ -26,6 +26,7 @@ api.use(bodyParser.urlencoded({
 
 api.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   });
@@ -61,6 +62,7 @@ api.put("/:userid" , function (req,res){
     var db = admin.firestore();
     var auth = firebase.auth();
     var uid = req.params.userid;
+    console.log(req.body);
     updateData = {
         email: req.body.email,
         lastname: req.body.lastname,
@@ -75,6 +77,10 @@ api.put("/:userid" , function (req,res){
             if (user) {
                 user.updateEmail(req.body.email).then(function() {
                     console.log("se ha actualizado el correo en auth")
+                    res.json({
+                        status: 200,
+                        message: "Perfil actualizado"
+                    })
                 }).catch(function (error){
                     res.json({
                         status: error.code,
@@ -83,12 +89,33 @@ api.put("/:userid" , function (req,res){
                 }) 
             }           
         })
+    }else{
+        res.json({
+            status: 200,
+            message: "Perfil actualizado"
+        })
     }    
-    res.json({
-        status: 200,
-        message: "Perfil actualizado"
-    })
 })
+
+api.put("/:userid/resetPassword" , function (req,res){
+    var au = firebase.auth();
+    var uid = req.params.userid;
+    var user = firebase.auth().currentUser;
+    user.updatePassword(req.body.password).then(function(){
+        console.log('password updated');
+        res.json({
+            status:200,
+            message: 'the password has been updated'
+        })
+    }).catch(function(error){
+        var code = error.code;
+        var message = error.message;
+        res.json({
+            status: code,
+            message: message
+        })
+    })
+});
 
 var encryptKey = function(key) {
     console.log("encrypting.....")
@@ -314,14 +341,22 @@ api.get('/:userid/post', function (req,res){
     var uid = req.params.userid;
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
-            admin.database().ref().child('Posts').orderByChild('user_id').equalTo(uid).once('value').then(function (snapshot){
-                var posts = snapshot.val();
-                console.log(posts)
-                res.status(200).json({
-                    status: 200,
-                    message: 'Users Post retrieved succesfully',
-                    data: posts
-                })
+            admin.firestore().collection('Posts').where('user_id','==',uid).get().then(function (snapshot){
+                if (snapshot){
+                    var posts = snapshot.data();
+                    console.log(posts)
+                    res.status(200).json({
+                        status: 200,
+                        message: 'Users Post retrieved succesfully',
+                        data: posts
+                    })
+                }else{
+                    res.status(404).json({
+                        status: 404,
+                        message: 'No Posts found',
+                        data: posts
+                    })
+                }    
             }).catch(function (error){
                 res.status(400).json({
                     status: error.code,
@@ -337,12 +372,18 @@ api.get('/:userid/post', function (req,res){
 })
 
 
-api.get('/:userid/contacts', function (req,res){
+api.get('/:userid/contacts', async (req,res) => {
     var uid = req.params.userid;
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            admin.database().ref().child('Users/' + uid + '/contacts').once('value').then(function (snapshot){
-                var contacts = snapshot.val();
+            contatcs = []
+            admin.firestore().collection('Users').doc(uid).collection('contacts').then(function (snapshot){
+                await (snapshot.forEach( doc => {
+                    contact = {
+                        user_id: doc.data()
+                    }
+                    contacts.push(contact)
+                }))
                 console.log(contacts);
                 res.status(200).json({
                     status: 200,
@@ -370,48 +411,45 @@ var getChats = function (chatKeys){
     
 }
 
-api.get('/:userid/chats', function (req,res){
+api.get('/:userid/chats', function (req,res) {
     uid = req.params.userid;
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            chats = []
-            keys = []
-            indice = 0;
-            data = admin.database().ref('Chat_participants').orderByKey();
-            data.once('value').then(function (snapshot){
-                if (snapshot){
-                    snapshot.forEach(function (childSnapshot){
-                        var key = childSnapshot.key;
-                        keys.push(key);
+            user_chats = [];
+            chats = admin.firestore().collection('Chats');
+            i = 0;
+            chats.get().then(function (snapshot){
+                snapshot.forEach(doc => {
+                    chats.doc(doc.id).collection('Participants').where(uid, '==', true).get().then(snap => {
+                        snap.forEach(data => {
+                            chat = {
+                                [doc.id]: doc.data()
+                            }
+                            user_chats.push(chat)
+                        })
+                        if (i == snapshot.size){
+                            console.log(user_chats);
+                            console.log('Chats retrieved for user ', uid)
+                            res.status(200).json({
+                                status: 200,
+                                messagge: 'User chats retrieved',
+                                data: user_chats
+                            }) 
+                        }
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
                     })
-                    for (var i = 0; i < keys.length;i++){
-                         admin.database().ref().child('Chats/' + keys[i] ).once('value').then(function (snap){
-                               if (snap){
-                                   key = snap.key
-                                   val = snap.val()
-                                   format = {
-                                       [key]: val
-                                   }     
-                                chats.push(format);
-                                indice++;
-                                if (indice == (keys.length)){
-                                    res.status(200).json({
-                                        status: 200,
-                                        message: 'User chats retrieved',
-                                        data: chats
-                                    })
-                                }
-                                                                                    
-                               }
-                           }).catch(function (error){
-                               res.json({
-                                   status: error.code,
-                                   message: error.message
-                            })
-                         })                      
-                    };                
-                }    
-            })
+                    i++;
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })   
         }else{
             res.json({
                 status: 401,

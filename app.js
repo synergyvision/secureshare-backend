@@ -22,7 +22,8 @@ firebase.initializeApp(config);
 
 db = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://vision-sharekey.firebaseio.com"
+  databaseURL: "https://vision-sharekey.firebaseio.com",
+  storageBucket: "gs://vision-sharekey.appspot.com"
 });
 
 
@@ -46,7 +47,7 @@ app.use("/contacts",apiContacts);
 app.use("/chats", apiChats);
 app.use("/messages",apiMessage);
 app.use("/surveys",apiSurveys);
-app.use("/files", apiFiles);
+app.use("/upload", apiFiles);
 
 app.listen(3000, function() {
     console.log("Express app started on port 3000.");

@@ -38,8 +38,7 @@ api.post("/", function (req, res){
 });
 
 api.post("/sendEmail", function (req , res){
-
-    var au = firebase.auth();   
+    var au = fire.auth();   
     au.sendPasswordResetEmail(req.body.email).then(function(){
         res.json({
             status: 200,
@@ -54,25 +53,6 @@ api.post("/sendEmail", function (req , res){
             message: message
         })
     });
-
-});
-
-api.post("/resetPassword" , function (req,res){
-    var au = firebase.auth();
-    var user = firebase.auth().currentUser;
-    user.updatePassword(req.body.password).then(function(){
-        res.json({
-            status:200,
-            message: 'the password has been updated'
-        })
-    }).catch(function(error){
-        var code = error.code;
-        var message = error.message;
-        return res.json({
-            status: code,
-            message: message
-        })
-    })
 
 });
 

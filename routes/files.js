@@ -1,4 +1,5 @@
 var express = require("express");
+var format = require('util').format;
 var firebase= require("firebase");
 var admin = require("firebase-admin");
 const Multer = require('multer');
@@ -16,35 +17,97 @@ api.use(function(req, res, next) {
     next();
   });
 
-  var gcs = new Storage({
-    projectId: 'vision-sharekey',
-    keyFilename: './credentials.json'
-  })
-
   const multer = Multer({
-    storage: Multer.MemoryStorage,
+    storage: Multer.memoryStorage(),
     limits: {
-      fileSize: 5 * 1024 * 1024 // no larger than 5mb
+      fileSize: 5 * 1024 * 1024 // no larger than 5mb, you can change as needed.
     }
   });
+  
 
-const bucket = gcs.bucket("gs://vision-sharekey.appspot.com");
-
-api.post('/', function (req, res){
+api.post('/files', multer.single('file'), (req, res) => {
   firebase.auth().onAuthStateChanged( function (user){
     if (user){
-      console.log(req)
-      let files = req.body.file;
-      console.log(files)
-      bucket.upload('', function(err, file) {
-        if (!err) {
-          // "zebra.jpg" is now in your bucket.
-        }
+      uid = req.body.uid;
+      var bucket = admin.storage().bucket();
+      var blob = bucket.file(req.file.originalname)
+      var blobStream = blob.createWriteStream();
+
+      blobStream.on('error', (error) => {
+        console.log(error);
+      })
+
+      blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+        admin.firestore().collection('Users').doc(uid).collection('Files').add({
+          link: publicUrl,
+          name: req.file.originalname
+        }).then(function (){
+            res.status(200).json({
+              status: 200,
+              message: 'File received and uploaded'
+            })
+            console.log('File uploaded')
+        }).catch(function (error){
+            res.status(400).json({
+              status: error.code,
+              message: error.message
+            })
+            console.log('Error code: ' + error.code + ', message' + error.message)
+        })
       });
+    
+      blobStream.end(req.file.buffer);
+
     }else{
       res.status(401).json({
         status: 401,
-        message: 'You need tp log in to access content'
+        message: 'You need to log in to access content'
+      })
+    }
+  })
+})
+
+api.post('/images', multer.single('file'), (req, res) => {
+  firebase.auth().onAuthStateChanged( function (user){
+    if (user){
+      uid = req.body.uid;
+      var bucket = admin.storage().bucket();
+      var blob = bucket.file(req.file.originalname)
+      var blobStream = blob.createWriteStream();
+
+      blobStream.on('error', (error) => {
+        console.log(error);
+      })
+
+      blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+        admin.firestore().collection('Users').doc(uid).collection('Images').add({
+          link: publicUrl,
+          name: req.file.originalname
+        }).then(function (){
+            res.status(200).json({
+              status: 200,
+              message: 'Image received and uploaded'
+            })
+            console.log('Image uploaded')
+        }).catch(function (error){
+            res.status(400).json({
+              status: error.code,
+              message: error.message
+            })
+            console.log('Error code: ' + error.code + ', message' + error.message)
+        })
+      });
+    
+      blobStream.end(req.file.buffer);
+
+    }else{
+      res.status(401).json({
+        status: 401,
+        message: 'You need to log in to access content'
       })
     }
   })
