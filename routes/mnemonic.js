@@ -3,6 +3,11 @@ var Mnemonic = require('bitcore-mnemonic');
 
 var api = express.Router();
 
+api.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
 
 api.get("/", function (req,res){
     var code = new Mnemonic(Mnemonic.Words.SPANISH);
