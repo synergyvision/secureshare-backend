@@ -7,6 +7,7 @@ var openpgp = require("openpgp");
 var QRCode = require("qrcode");
 var nodemailer = require("nodemailer");
 var Cryptr = require("cryptr");
+var Mnemonic = require('bitcore-mnemonic');
 
 var api = express.Router();
 
@@ -116,6 +117,15 @@ api.put("/:userid/resetPassword" , function (req,res){
         })
     })
 });
+
+api.get("/getWords", function (req,res){
+    var code = new Mnemonic(Mnemonic.Words.SPANISH);
+    console.log(code.toString()); // natal hada sutil año sólido papel jamón combate aula flota ver esfera...
+    res.status(200).json({
+        status: 200,
+        message: code.toString()
+    })
+})
 
 var encryptKey = function(key) {
     console.log("encrypting.....")
