@@ -10,6 +10,7 @@ var apiChats = require("./routes/chats");
 var apiMessage = require("./routes/messages");
 var apiSurveys = require("./routes/surveys");
 var apiFiles = require("./routes/files");
+var mnemonic = require("./routes/mnemonic");
 
 var admin = require("firebase-admin");
 var firebase = require("firebase");
@@ -67,6 +68,7 @@ app.use("/chats", apiChats);
 app.use("/messages",apiMessage);
 app.use("/surveys",apiSurveys);
 app.use("/upload", apiFiles);
+app.use("/mnemonic",mnemonic);
 
 app.listen(process.env.PORT, function() {
     console.log("Express app started on port 3000.");
