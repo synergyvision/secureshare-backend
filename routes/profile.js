@@ -3,17 +3,12 @@ var admin = require("firebase-admin");
 var firebase= require("firebase");
 var bodyParser = require("body-parser");
 var speakeasy = require("speakeasy");
-var openpgp = require("openpgp");
 var QRCode = require("qrcode");
 var nodemailer = require("nodemailer");
-var Cryptr = require("cryptr");
 var Mnemonic = require('bitcore-mnemonic');
 
 var api = express.Router();
 
-var seed = 'sharekey-seed';
-
-var cryptr = new Cryptr(seed);
 
 const mailTransport = nodemailer.createTransport({
     service: "gmail",
@@ -119,19 +114,9 @@ api.put("/:userid/resetPassword" , function (req,res){
 });
 
 
-var encryptKey = function(key) {
-    console.log("encrypting.....")
-    encryptedKey = cryptr.encrypt(key)
-    return encryptedKey;
-}
-var decryptKey = function(key){
-    decryptedKey = cryptr.decrypt(key);
-    return decryptedKey;
-}
 
 var storePublicKey =  function (uid,key){
     var db = admin.firestore();
-    console.log(uid,key)
     postPBData = db.collection('PubKeys').doc(uid);
     var newPostPBData = postPBData.set({
         PubKey: key,
@@ -147,12 +132,10 @@ var storePublicKey =  function (uid,key){
 
 var storePrivateKey = function (uid,Pass,Key){
     var db = admin.firestore();
-    var securedKey = encryptKey(Key)
-    var securedPass = encryptKey(Pass)
     postPKData = db.collection('PrivKeys').doc(uid);
     var newPKData = postPKData.set({
-        PrivKey: securedKey,
-        passphrase: securedPass,
+        PrivKey: Key,
+        passphrase: Pass,
     }).then( function(){
         console.log("llave privada y pass asegurados")
     }).catch(function (error){
@@ -165,47 +148,36 @@ var storePrivateKey = function (uid,Pass,Key){
 
 
 // generating a new pgp key pair
-api.post("/:userid/keys", function (req,res){
-    firebase.auth().onAuthStateChanged ( function (user){
+api.post("/:userid/storeKeys", function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var uid = req.params.userid;
-            var options = {
-                userIds: [{ name: req.body.name, email: req.body.email}],
-                numBits: 4096,
-                passphrase: req.body.passphrase,
-            }
-            console.log("Generating Keys")
-            openpgp.generateKey(options).then(function(key){
-                var privkey = key.privateKeyArmored;
-                var pubkey = key.publicKeyArmored;
-                var revocationCertificate = key.revocationCertificate;
-                console.log("The keys have been generated");
-                console.log("Asegurandolas en BD")
-                storePublicKey(uid,pubkey)
-                console.log("llave publica guardada")
-                storePrivateKey(uid,req.body.passphrase,privkey)
-                res.json({
-                    status:200,
-                    message: "user Keys have been created and stored"
-                })
-            }).catch(function (error){
-                res.send(error);
+            var pubkey = req.body.pubkey;
+            var privkey = req.body.privkey;
+            var pass = req.body.pass;
+            storePublicKey(uid,pubkey);
+            console.log('Stored public key for user ' + uid);
+            storePrivateKey(uid,pass,privkey)
+            console.log('Stored private key for user ' + uid);
+            res.status(200).json({
+                status:200,
+                message: 'The user keys have been received and stored'
             })
         }else{
             res.status(401).json({
                 message: 'You need to be logged in to access content'
             })
-        }    
+        }
     })
 
 })
 
+
 var getPrivKeys = function (uid){
     db = admin.firestore();
    return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
-        var key = snapshot.get(PrivKey);
-        privKey = decryptKey(key)
-        return privKey
+        var key = snapshot.get('PrivKey');
+        return key
     })
 
 }
@@ -214,8 +186,6 @@ var getPublicKeys = function(uid){
     db = admin.firestore();
     return db.collection('PubKeys').doc(uid).get().then(function(snapshot){
         var key = snapshot.get('PubKey');
-        console.log(snapshot.data())
-        console.log(key);
         return key
     }).catch (function(err){
         res.send(err);
@@ -225,18 +195,45 @@ var getPublicKeys = function(uid){
 var getPass = function(uid){
     db = admin.firestore();
     return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
-        var key = snapshot.get(passphrase);
-        passphrase = decryptKey(key)
-        return passphrase
+        var pass = snapshot.get('passphrase');
+        return pass
     }).catch (function(err){
         res.send(err)
     })
 }
 
-var readPubKey = async (key) => {
-    var k = (await openpgp.key.readArmored(key)).keys;
-    return k
-}
+api.get("/:userid/getKeys" , function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            var uid = req.params.userid;
+            var publicKey = getPublicKeys(uid);
+            publicKey.then((publicKey) => {
+                var privateKey = getPrivKeys(uid);
+                privateKey.then((privateKey) => {
+                    res.status(200).json({
+                        message: 'Keys retrieved',
+                        publickKey: publicKey,
+                        privateKey: privateKey
+                    })
+                }).catch(function (error){
+                    res.status(400).json({
+                        status: error.code,
+                        message: error.message
+                    })
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
 
 api.post("/:userid/encrypt", function (req,res) {
     firebase.auth().onAuthStateChanged( function (user){
