@@ -15,19 +15,25 @@ var mnemonic = require("./routes/mnemonic");
 var admin = require("firebase-admin");
 var firebase = require("firebase");
 
-//initialize firebase
+// for initalizing local firebase
 
-var config2 = {
+// var serviceAccount = require("./credentials.json");
+// var config = require("./credentials2.json");
+
+//initialize firebase on server, comment when using locally
+
+var config = {
   apiKey: process.env.firebase_apikey,
   authDomain: process.env.firebase_authDomain,
   databaseURL: process.env.firebase_databaseURL
 }
 
-firebase.initializeApp(config2);
+firebase.initializeApp(config);
 
-//initialize firebase admin
 
-var config = {
+//initialize firebase admin on server, comment when using locally
+
+var serviceAccount = {
   type: process.env.firebase_type,
   project_id: process.env.firebase_project_id,
   private_key_id: process.env.firebase_private_key_id,
@@ -41,7 +47,7 @@ var config = {
 }
 
 db = admin.initializeApp({
-  credential: admin.credential.cert(config),
+  credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://vision-sharekey.firebaseio.com",
   storageBucket: "gs://vision-sharekey.appspot.com"
 });
