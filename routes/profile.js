@@ -147,7 +147,7 @@ var storePrivateKey = function (uid,Pass,Key){
 }
 
 
-// generating a new pgp key pair
+// store the keys received from client
 api.post("/:userid/storeKeys", function (req,res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
@@ -210,10 +210,19 @@ api.get("/:userid/getKeys" , function (req,res){
             publicKey.then((publicKey) => {
                 var privateKey = getPrivKeys(uid);
                 privateKey.then((privateKey) => {
-                    res.status(200).json({
-                        message: 'Keys retrieved',
-                        publickKey: publicKey,
-                        privateKey: privateKey
+                    var passphrase = getPass(uid);
+                    passphrase.then((passphrase) => {
+                        res.status(200).json({
+                            message: 'Keys retrieved',
+                            publickKey: publicKey,
+                            privateKey: privateKey,
+                            passphrase: passphrase
+                        })
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
                     })
                 }).catch(function (error){
                     res.status(400).json({
