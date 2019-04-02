@@ -214,7 +214,7 @@ api.get("/:userid/getKeys" , function (req,res){
                     passphrase.then((passphrase) => {
                         res.status(200).json({
                             message: 'Keys retrieved',
-                            publickKey: publicKey,
+                            publicKey: publicKey,
                             privateKey: privateKey,
                             passphrase: passphrase
                         })

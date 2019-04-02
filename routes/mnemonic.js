@@ -11,7 +11,7 @@ api.use(function(req, res, next) {
 
 api.get("/", function (req,res){
     var code = new Mnemonic(Mnemonic.Words.SPANISH);
-    console.log(code.toString()); // natal hada sutil año sólido papel jamón combate aula flota ver esfera...
+    console.log(code.toString());
     res.status(200).json({
         status: 200,
         message: code.toString()
