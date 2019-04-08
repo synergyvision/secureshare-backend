@@ -64,7 +64,8 @@ api.put("/:userid" , function (req,res){
         lastname: req.body.lastname,
         name: req.body.name,
         phone: req.body.phone,
-        username: req.body.username
+        username: req.body.username,
+        bio: req.body.bio
     }
     db.collection('Users').doc(uid).update(updateData);
     console.log("se ha actualizado en la base de datos")
