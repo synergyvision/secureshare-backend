@@ -385,8 +385,8 @@ api.get('/:userid/contacts', async (req,res) => {
     var uid = req.params.userid;
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            contatcs = []
-            admin.firestore().collection('Users').doc(uid).collection('contacts').then(function (snapshot){
+            contacts = []
+            admin.firestore().collection('Users').doc(uid).collection('contacts').get().then(async (snapshot) => {
                 await (snapshot.forEach( doc => {
                     contact = {
                         user_id: doc.data()

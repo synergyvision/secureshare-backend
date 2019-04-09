@@ -94,9 +94,12 @@ api.put('/:userid/requests/:requestid', function (req,res){
                     console.log('actualice el request' + request_id)
                     admin.firestore().collection('Requests').doc(request_id).get().then(function (snapshot){
                         sender = snapshot.get('id_from');
-                        var update = admin.firestore().collection('Users').doc(uid).collection('contacts').add({userId: sender, status: true})
+                        to = snapshot.get('id_to');
+                        console.log('sender: ' +sender );
+                        console.log('to: ' + to);
+                        var update = admin.firestore().collection('Users').doc(to).collection('contacts').add({Iduser: sender, status: true})
                         update.then(function (){
-                            var act = admin.firestore().collection('Users').doc(sender).collection('contacts').add({userId: uid,status: true})
+                            var act = admin.firestore().collection('Users').doc(sender).collection('contacts').add({Iduser: uid,status: true})
                             act.then(function (){
                                 console.log('User contacts updated');
                                 res.status(200).json({
