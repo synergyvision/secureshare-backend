@@ -13,23 +13,54 @@ api.use(function(req, res, next) {
     next();
   });
 
+var requestInfo =  function (id){
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        var info = {
+            id: id,
+            name: snapshot.get('name'),
+            lastname: snapshot.get('lastname'),
+        }
+        return info;
+    }).catch(function (error){
+        console.log(error.code);
+        console.log(error.message);
+    })  
+}
+
 api.get('/:userid/requests', function (req, res){
     uid = req.params.userid,
     firebase.auth().onAuthStateChanged(function (user){
         requests = []
+        var i = 0;
+        var quantity = 0;
         if (user) {
             admin.firestore().collection('Requests').where('id_to', '==', uid).get().then(function (snapshot){
-                snapshot.forEach(doc => {
-                    request = {
-                        [doc.id] : doc.data()
-                    }
-                    requests.push(request);
-                })
-                res.status(200).json({
-                    status: 200,
-                    message: 'This are the users friends requests',
-                    data: requests
-                })
+                if (!snapshot.empty){
+                    snapshot.forEach(doc => {
+                        info = requestInfo(doc.get('id_from'));
+                        info.then(function (info){
+                            i++;
+                            request = {
+                                [doc.id] : info
+                            }
+                            requests.push(request);
+                            if (i == snapshot.size){
+                                res.status(200).json({
+                                    status: 200,
+                                    message: 'This are the users friends requests',
+                                    data: requests
+                                })   
+                            }
+                        })
+                        
+                    })       
+                }
+                else {
+                    res.status(404).json({
+                        status: 404,
+                        message: 'User has no request'
+                    })
+                }   
             }).catch(function (error){
                 res.status(400).json({
                     status: error.code,

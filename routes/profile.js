@@ -407,6 +407,7 @@ api.get('/:userid/contacts', function (req,res) {
                         id = doc.get('Iduser');
                         userInfo = contactInfo(id);
                         userInfo.then((userInfo) => {
+                            i++;
                             contacts.push(userInfo);
                             if (i == snapshot.size){
                                 res.status(200).json({
@@ -416,7 +417,6 @@ api.get('/:userid/contacts', function (req,res) {
                                 })
                             }
                         })
-                        i++;
                     })
                 }else{
                     res.status(404).json({
