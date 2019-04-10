@@ -380,25 +380,50 @@ api.get('/:userid/post', function (req,res){
     })
 })
 
+var contactInfo = function (id) {
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        var info = {
+            id: id,
+            name: snapshot.get('name'),
+            lastname: snapshot.get('lastname'),
+            bio: snapshot.get('bio')
+        }
+        return info;
+    }).catch(function (error){
+        console.log(error.code);
+        console.log(error.message);
+    })  
+}
 
-api.get('/:userid/contacts', async (req,res) => {
+api.get('/:userid/contacts', function (req,res) {
     var uid = req.params.userid;
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
             contacts = []
-            admin.firestore().collection('Users').doc(uid).collection('contacts').get().then(async (snapshot) => {
-                await (snapshot.forEach( doc => {
-                    contact = {
-                        user_id: doc.data()
-                    }
-                    contacts.push(contact)
-                }))
-                console.log(contacts);
-                res.status(200).json({
-                    status: 200,
-                    message: 'User contacts retrieved succesfully',
-                    data: contacts
-                })
+            var i = 0
+            admin.firestore().collection('Users').doc(uid).collection('contacts').get().then((snapshot) => {
+                if (!snapshot.empty){
+                    snapshot.forEach( doc => {
+                        id = doc.get('Iduser');
+                        userInfo = contactInfo(id);
+                        userInfo.then((userInfo) => {
+                            contacts.push(userInfo);
+                            if (i == snapshot.size){
+                                res.status(200).json({
+                                    status: 200,
+                                    message: 'User contacts retrieved succesfully',
+                                    data: contacts
+                                })
+                            }
+                        })
+                        i++;
+                    })
+                }else{
+                    res.status(404).json({
+                        status: 404,
+                        message: 'User has no contacts'
+                    })
+                }    
             }).catch(function (error){
                 res.status(400).json({
                     status: error.code,
