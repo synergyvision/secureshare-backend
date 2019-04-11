@@ -40,11 +40,9 @@ api.get('/:userid/requests', function (req, res){
                         info = requestInfo(doc.get('id_from'));
                         info.then(function (info){
                             i++;
-                            request = {
-                                [doc.id] : info,
-                                status: doc.get('status')
+                            if (doc.get('status') == false){
+                                requests.push(info);
                             }
-                            requests.push(request);
                             if (i == snapshot.size){
                                 res.status(200).json({
                                     status: 200,
