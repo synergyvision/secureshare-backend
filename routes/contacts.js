@@ -117,6 +117,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
     request_id = req.params.requestid
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
+            console.log(req.body.status)
             if (req.body.status == true){
                 newRequestData = {
                     status: true
