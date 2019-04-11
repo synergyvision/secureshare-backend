@@ -13,12 +13,13 @@ api.use(function(req, res, next) {
     next();
   });
 
-var requestInfo =  function (id){
+var requestInfo =  function (user_id,request_id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         var info = {
             id: id,
             name: snapshot.get('name'),
             lastname: snapshot.get('lastname'),
+            requestId: request_id
         }
         return info;
     }).catch(function (error){
@@ -37,7 +38,7 @@ api.get('/:userid/requests', function (req, res){
             admin.firestore().collection('Requests').where('id_to', '==', uid).get().then(function (snapshot){
                 if (!snapshot.empty){
                     snapshot.forEach(doc => {
-                        info = requestInfo(doc.get('id_from'));
+                        info = requestInfo(doc.get('id_from'),doc.id);
                         info.then(function (info){
                             i++;
                             if (doc.get('status') == false){
