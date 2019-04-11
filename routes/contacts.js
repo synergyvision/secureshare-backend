@@ -41,7 +41,8 @@ api.get('/:userid/requests', function (req, res){
                         info.then(function (info){
                             i++;
                             request = {
-                                [doc.id] : info
+                                [doc.id] : info,
+                                status: doc.get('status')
                             }
                             requests.push(request);
                             if (i == snapshot.size){
