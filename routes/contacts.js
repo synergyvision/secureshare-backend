@@ -139,7 +139,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
                                     message: 'Contact request accepted',
                                     accepted: true
                                 })
-                            }).catch(function(){
+                            }).catch(function(error){
                                 res.json({
                                     status: error.code,
                                     message: error.message
