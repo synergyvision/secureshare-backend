@@ -14,7 +14,7 @@ api.use(function(req, res, next) {
   });
 
 var requestInfo =  function (user_id,request_id){
-    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+    return admin.firestore().collection('Users').doc(user_id).get().then( function (snapshot){
         var info = {
             id: user_id,
             name: snapshot.get('name'),
