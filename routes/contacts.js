@@ -133,7 +133,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
                             var act = admin.firestore().collection('Users').doc(sender).collection('contacts').add({Iduser: uid,status: true})
                             act.then(function (){
                                 console.log('User contacts updated');
-                                admin.firestore().collection('Requests').doc(request_id).remove();
+                                admin.firestore().collection('Requests').doc(request_id).delete();
                                 res.status(200).json({
                                     status: 200,
                                     message: 'Contact request accepted',
@@ -164,7 +164,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
                     })
                 })
             }else {
-                admin.firestore().collection('Requests').doc(request_id).remove();
+                admin.firestore().collection('Requests').doc(request_id).delete();
                 res.json({
                     status: 200,
                     message: 'The request has been rejected',
