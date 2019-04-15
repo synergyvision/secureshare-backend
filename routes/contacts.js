@@ -223,4 +223,37 @@ api.delete('/:userid', function (req,res){
     })     
 })    
 
+api.get('/users', function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            users = []
+            var i = 0;
+            admin.firestore().collection('Users').get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    i++;
+                    info = {
+                        id: doc.id,
+                        name: doc.get('name'),
+                        lastname: doc.get('lastname')
+                    }
+                    users.push(info)
+                    if (i == querySnapshot.size){
+                        res.status(200).json({
+                            status: 200,
+                            message: 'User list',
+                            data: users
+                        })   
+                    }
+                });
+            })    
+        }else{
+            res.json({
+                status: 401,
+                message: 'you need to log in to access this content'
+            }) 
+        }
+    })
+
+})
+
 module.exports = api;
