@@ -223,27 +223,46 @@ api.delete('/:userid', function (req,res){
     })     
 })    
 
-api.get('/users', function (req,res){
+var contact = function (user_id,id){
+    query = admin.firestore().collection('Users').doc(user_id).collection('contacts').where('Iduser', '==', id)
+    return query.get().then(function (snapshot){
+        if (snapshot.empty){
+            return false;
+        }else{
+            return true;
+        }
+    }).catch(function (error){
+        console.log(error)
+    })
+}
+
+
+api.get('/:userid/users', function (req,res){
+    uid = req.params.userid
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
             users = []
             var i = 0;
             admin.firestore().collection('Users').get().then(function(querySnapshot) {
                 querySnapshot.forEach(function(doc) {
-                    i++;
-                    info = {
-                        id: doc.id,
-                        name: doc.get('name'),
-                        lastname: doc.get('lastname')
-                    }
-                    users.push(info)
-                    if (i == querySnapshot.size){
-                        res.status(200).json({
-                            status: 200,
-                            message: 'User list',
-                            data: users
-                        })   
-                    }
+                    user_contact = contact(uid,doc.id);
+                    user_contact.then(function (contact){
+                        i++;
+                        info = {
+                            id: doc.id,
+                            name: doc.get('name'),
+                            lastname: doc.get('lastname'),
+                            contact: contact
+                        }
+                        users.push(info)
+                        if (i == querySnapshot.size){
+                            res.status(200).json({
+                                status: 200,
+                                message: 'User list',
+                                data: users
+                            })   
+                        }
+                    })
                 });
             })    
         }else{
