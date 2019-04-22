@@ -57,7 +57,7 @@ api.post("/sendEmail", function (req , res){
 });
 
 api.get("/activeUser", function (req,res) {
-    var au = firebase.auth();
+    var au = fire.auth();
     au.onAuthStateChanged(function(user) {
         if (user) {
           res.json({
