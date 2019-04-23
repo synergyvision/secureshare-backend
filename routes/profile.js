@@ -161,62 +161,36 @@ api.post("/:userid/storeKeys", function (req,res){
 })
 
 
-var getPrivKeys = function (uid){
+var getKeys = function (uid){
+    console.log('here');
     db = admin.firestore();
-   return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
-        var key = snapshot.get('PrivKey');
-        return key
+    keys = [];
+    var i = 0;
+   return db.collection('Users').doc(uid).collection('Keys').get().then(function(snapshot){
+        snapshot.forEach(doc => {
+            i ++;
+            key = {
+                name: doc.get('name'),
+                publicKey: doc.get('PubKey'),
+                privateKey: doc.get('PrivKey'),
+                pass: doc.get('passphrase')
+            }
+            keys.push(key)            
+        })
+        return keys;
     })
 
-}
-
-var getPublicKeys = function(uid){
-    db = admin.firestore();
-    return db.collection('PubKeys').doc(uid).get().then(function(snapshot){
-        var key = snapshot.get('PubKey');
-        return key
-    }).catch (function(err){
-        res.send(err);
-    })
-}
-
-var getPass = function(uid){
-    db = admin.firestore();
-    return db.collection('PrivKeys').doc(uid).get().then(function(snapshot){
-        var pass = snapshot.get('passphrase');
-        return pass
-    }).catch (function(err){
-        res.send(err)
-    })
 }
 
 api.get("/:userid/getKeys" , function (req,res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var uid = req.params.userid;
-            var publicKey = getPublicKeys(uid);
-            publicKey.then((publicKey) => {
-                var privateKey = getPrivKeys(uid);
-                privateKey.then((privateKey) => {
-                    var passphrase = getPass(uid);
-                    passphrase.then((passphrase) => {
-                        res.status(200).json({
-                            message: 'Keys retrieved',
-                            publicKey: publicKey,
-                            privateKey: privateKey,
-                            passphrase: passphrase
-                        })
-                    }).catch(function (error){
-                        res.status(400).json({
-                            status: error.code,
-                            message: error.message
-                        })
-                    })
-                }).catch(function (error){
-                    res.status(400).json({
-                        status: error.code,
-                        message: error.message
-                    })
+            var keys = getKeys(uid);
+            keys.then((keys) => {
+                res.status(200).json({
+                    message: 'Keys retrieved',
+                    data: keys
                 })
             }).catch(function (error){
                 res.status(400).json({
