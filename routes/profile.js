@@ -145,7 +145,7 @@ api.post("/:userid/storeKeys", function (req,res){
             var privkey = req.body.privkey;
             var pass = req.body.pass;
             var keyName= req.body.keyname;
-            storeKeys(uid,pubkey,privkey,pass);
+            storeKeys(uid,pubkey,privkey,pass,keyName);
             console.log('Stored public keys for user ' + uid);
             res.status(200).json({
                 status:200,
