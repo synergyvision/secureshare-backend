@@ -12,13 +12,13 @@ var apiSurveys = require("./routes/surveys");
 var apiFiles = require("./routes/files");
 var mnemonic = require("./routes/mnemonic");
 
- //var admin = require("firebase-admin");
- //var firebase = require("firebase");
+ var admin = require("firebase-admin");
+ var firebase = require("firebase");
 
 // for initalizing local firebase
 
-var serviceAccount = require("./credentials.json");
- var config = require("./credentials2.json");
+//var serviceAccount = require("./credentials.json");
+// var config = require("./credentials2.json");
 
 //initialize firebase on server, comment when using locally
 
