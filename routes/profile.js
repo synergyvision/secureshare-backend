@@ -116,13 +116,16 @@ api.put("/:userid/resetPassword" , function (req,res){
 
 
 
-var storePublicKey =  function (uid,key){
+var storePublicKey =  function (uid,pubkey,privkey,pass,keyName){
     var db = admin.firestore();
-    postPBData = db.collection('PubKeys').doc(uid);
-    var newPostPBData = postPBData.set({
-        PubKey: key,
+    postPBData = db.collection('Users').doc(uid).collection('Keys');
+    var newPostPBData = postPBData.add({
+        PubKey: pubkey,
+        PrivKey: privkey,
+        passphrase: pass,
+        name: keyName
     }).then(function (){ 
-        console.log("Llave publica resguardada") 
+        console.log("Llaves resguardadas") 
     }).catch(function (error){
         res.status(400).json({
             status: error.code,
@@ -131,21 +134,6 @@ var storePublicKey =  function (uid,key){
     })    
 }
 
-var storePrivateKey = function (uid,Pass,Key){
-    var db = admin.firestore();
-    postPKData = db.collection('PrivKeys').doc(uid);
-    var newPKData = postPKData.set({
-        PrivKey: Key,
-        passphrase: Pass,
-    }).then( function(){
-        console.log("llave privada y pass asegurados")
-    }).catch(function (error){
-        res.status(400).json({
-            status: error.code,
-            message: error.message
-        })
-    })
-}
 
 
 // store the keys received from client
@@ -156,10 +144,9 @@ api.post("/:userid/storeKeys", function (req,res){
             var pubkey = req.body.pubkey;
             var privkey = req.body.privkey;
             var pass = req.body.pass;
-            storePublicKey(uid,pubkey);
-            console.log('Stored public key for user ' + uid);
-            storePrivateKey(uid,pass,privkey)
-            console.log('Stored private key for user ' + uid);
+            var keyName= req.body.keyname;
+            storeKeys(uid,pubkey,privkey,pass);
+            console.log('Stored public keys for user ' + uid);
             res.status(200).json({
                 status:200,
                 message: 'The user keys have been received and stored'
