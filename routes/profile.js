@@ -206,6 +206,39 @@ api.get("/:userid/getKeys" , function (req,res){
     })
 })
 
+api.delete("/:userid/deleteKey", function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            var keyname = req.body.name;
+            var uid = req.params.userid;
+            console.log('hola')
+            console.log(keyname);
+            admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
+                console.log('hola2')
+                querySnapshot.forEach(function (doc){
+                    console.log('hola1')
+                    docId = doc.id;
+                    admin.firestore().collection('Users').doc(uid).collection('Keys').doc(docId).delete();
+                    res.json({
+                        status: 200,
+                        message: 'Key succesfully deleted'
+                    })
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
+
 api.post("/:userid/encrypt", function (req,res) {
     firebase.auth().onAuthStateChanged( function (user){
         if (user){

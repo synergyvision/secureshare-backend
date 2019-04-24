@@ -18,7 +18,7 @@ var mnemonic = require("./routes/mnemonic");
 // for initalizing local firebase
 
 //var serviceAccount = require("./credentials.json");
-// var config = require("./credentials2.json");
+//var config = require("./credentials2.json");
 
 //initialize firebase on server, comment when using locally
 
@@ -80,6 +80,6 @@ app.listen(process.env.PORT, function() {
     console.log("Express app started on port 3000.");
   });
 
-/*  app.listen(3000, function() {
+ /*app.listen(3000, function() {
     console.log("Express app started on port 3000.");
   });*/
