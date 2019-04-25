@@ -237,6 +237,49 @@ api.delete("/:userid/deleteKey", function (req,res){
     })
 })
 
+api.put("/:userid/updateDefault", function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            var uid = req.params.userid;
+            var name = req.body.name;
+            var defecto = req.body.default;
+            findActualDefault = admin.firestore().collection('Users').doc(uid).collection('Keys').where('default','==',true);
+            findKey = admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',name);
+            findActualDefault.get().then(function (querySnapshot){
+                querySnapshot.forEach(function (doc){
+                    id = doc.id
+                    admin.firestore().collection('Users').doc(uid).collection('Keys').doc(id).update({default: false})
+                        findKey.get().then(function (snapshot){
+                            console.log(snapshot.docs)
+                            snapshot.forEach(function (document){
+                                docid= doc.id
+                            })
+                            admin.firestore().collection('Users').doc(uid).collection('Keys').doc(docid).update({default: true});
+                            res.status(201).json({
+                                status:201,
+                                message: 'the user default key has been updated'
+                            })
+                        }).catch(function (error){
+                            res.status(400).json({
+                                status: error.code,
+                                message: error.message
+                            })
+                        }) 
+                })
+            }).catch (function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+            message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
+
 api.post("/:userid/encrypt", function (req,res) {
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
