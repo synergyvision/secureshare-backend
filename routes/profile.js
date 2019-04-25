@@ -116,7 +116,7 @@ api.put("/:userid/resetPassword" , function (req,res){
 
 
 
-var storeKeys =  function (uid,pubkey,privkey,pass,keyName,defecto){
+var storeKeys =  function (uid,pubkey,privkey,pass,keyName){
     var db = admin.firestore();
     postPBData = db.collection('Users').doc(uid).collection('Keys');
     var newPostPBData = postPBData.add({
@@ -124,7 +124,7 @@ var storeKeys =  function (uid,pubkey,privkey,pass,keyName,defecto){
         PrivKey: privkey,
         passphrase: pass,
         name: keyName,
-        default: defecto
+        default: false
     }).then(function (){ 
         console.log("Llaves resguardadas") 
     }).catch(function (error){
@@ -146,8 +146,7 @@ api.post("/:userid/storeKeys", function (req,res){
             var privkey = req.body.privkey;
             var pass = req.body.pass;
             var keyName= req.body.keyname;
-            var defecto = req.body.default;
-            storeKeys(uid,pubkey,privkey,pass,keyName,defecto);
+            storeKeys(uid,pubkey,privkey,pass,keyName);
             console.log('Stored public keys for user ' + uid);
             res.status(200).json({
                 status:200,
@@ -242,31 +241,43 @@ api.put("/:userid/updateDefault", function (req,res){
         if (user){
             var uid = req.params.userid;
             var name = req.body.name;
-            var defecto = req.body.default;
-            findActualDefault = admin.firestore().collection('Users').doc(uid).collection('Keys').where('default','==',true);
-            findKey = admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',name);
-            findActualDefault.get().then(function (querySnapshot){
-                querySnapshot.forEach(function (doc){
-                    id = doc.id
-                    admin.firestore().collection('Users').doc(uid).collection('Keys').doc(id).update({default: false})
-                        findKey.get().then(function (snapshot){
-                            console.log(snapshot.docs)
-                            snapshot.forEach(function (document){
-                                docid= doc.id
-                            })
-                            admin.firestore().collection('Users').doc(uid).collection('Keys').doc(docid).update({default: true});
-                            res.status(201).json({
-                                status:201,
-                                message: 'the user default key has been updated'
+            admin.firestore().collection('Users').doc(uid).collection('Keys').where('default', '==', true).get().then(function (snapshot){
+                if (!snapshot.empty){    
+                    snapshot.forEach(function (doc){
+                        admin.firestore().collection('Users').doc(uid).collection('Keys').doc(doc.id).update({default: false});
+                        admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',name).get().then(function (querySnapshot){
+                            querySnapshot.forEach(function (document){
+                                admin.firestore().collection('Users').doc(uid).collection('Keys').doc(document.id).update({default: true});
+                                res.status(200).json({
+                                    status: 201,
+                                    message: 'user default key updated'
+                                })
                             })
                         }).catch(function (error){
                             res.status(400).json({
                                 status: error.code,
                                 message: error.message
                             })
-                        }) 
-                })
-            }).catch (function (error){
+                        })
+                    })
+                }else{
+                    admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',name).get().then(function (querySnapshot){
+                        querySnapshot.forEach(function (document){
+                            admin.firestore().collection('Users').doc(uid).collection('Keys').doc(document.id).update({default: true});
+                            res.status(200).json({
+                                status: 201,
+                                message: 'user default key updated'
+                            })
+                        })
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
+                    })
+                }    
+
+            }).catch(function (error){
                 res.status(400).json({
                     status: error.code,
                     message: error.message
