@@ -116,14 +116,15 @@ api.put("/:userid/resetPassword" , function (req,res){
 
 
 
-var storeKeys =  function (uid,pubkey,privkey,pass,keyName){
+var storeKeys =  function (uid,pubkey,privkey,pass,keyName,defecto){
     var db = admin.firestore();
     postPBData = db.collection('Users').doc(uid).collection('Keys');
     var newPostPBData = postPBData.add({
         PubKey: pubkey,
         PrivKey: privkey,
         passphrase: pass,
-        name: keyName
+        name: keyName,
+        default: defecto
     }).then(function (){ 
         console.log("Llaves resguardadas") 
     }).catch(function (error){
@@ -145,7 +146,8 @@ api.post("/:userid/storeKeys", function (req,res){
             var privkey = req.body.privkey;
             var pass = req.body.pass;
             var keyName= req.body.keyname;
-            storeKeys(uid,pubkey,privkey,pass,keyName);
+            var defecto = req.body.default;
+            storeKeys(uid,pubkey,privkey,pass,keyName,defecto);
             console.log('Stored public keys for user ' + uid);
             res.status(200).json({
                 status:200,
@@ -211,12 +213,8 @@ api.delete("/:userid/deleteKey", function (req,res){
         if (user){
             var keyname = req.body.name;
             var uid = req.params.userid;
-            console.log('hola')
-            console.log(keyname);
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
-                console.log('hola2')
                 querySnapshot.forEach(function (doc){
-                    console.log('hola1')
                     docId = doc.id;
                     admin.firestore().collection('Users').doc(uid).collection('Keys').doc(docId).delete();
                     res.json({
