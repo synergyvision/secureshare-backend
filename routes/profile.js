@@ -174,7 +174,8 @@ var getKeys = function (uid){
                 name: doc.get('name'),
                 publicKey: doc.get('PubKey'),
                 privateKey: doc.get('PrivKey'),
-                pass: doc.get('passphrase')
+                pass: doc.get('passphrase'),
+                default: doc.get('default')
             }
             keys.push(key)            
         })
