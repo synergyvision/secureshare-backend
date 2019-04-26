@@ -237,6 +237,49 @@ api.delete("/:userid/deleteKey", function (req,res){
     })
 })
 
+api.get("/:userid/recoverKey", function (req,res){
+    firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            var keyname = req.body.name;
+            var uid = req.params.userid;
+            admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
+                querySnapshot.forEach(function (doc){
+                    docId = doc.id;
+                    admin.firestore().collection('Users').doc(uid).collection('Keys').doc(docId).get().then(function (doc){
+                        if (doc){
+                            res.status(200).json({
+                                status: 200,
+                                message: 'Key retrieved',
+                                data: doc.data()
+                            })
+                        }else{
+                            res.status(400).json({
+                                status:404,
+                                message: 'The key was not found'
+                            })
+                        }
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
+                    })
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
+
 api.put("/:userid/updateDefault", function (req,res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
