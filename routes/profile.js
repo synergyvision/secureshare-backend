@@ -237,11 +237,12 @@ api.delete("/:userid/deleteKey", function (req,res){
     })
 })
 
-api.get("/:userid/recoverKey", function (req,res){
+api.post("/:userid/recoverKey", function (req,res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var keyname = req.body.name;
             var uid = req.params.userid;
+            console.log(req.body);
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
                 querySnapshot.forEach(function (doc){
                     docId = doc.id;
