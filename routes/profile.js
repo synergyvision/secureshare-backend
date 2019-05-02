@@ -336,6 +336,34 @@ api.put("/:userid/updateDefault", function (req,res){
     })
 })
 
+api.post("/:userid/getPublicKey", function (req,res){
+    uid = req.param.userid;
+    id = req.body.id;
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
+                querySnapshot.forEach( function (doc){
+                    publicKey = doc.get('PubKey');
+                    res.status(200).json({
+                        status: 200,
+                        message: 'Public Key retrieved',
+                        data: publicKey
+                    })
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
+
 api.post("/:userid/encrypt", function (req,res) {
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
