@@ -344,10 +344,12 @@ api.post("/:userid/getPublicKey", function (req,res){
             admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
                 querySnapshot.forEach( function (doc){
                     publicKey = doc.get('PubKey');
+                    name = doc.get('name');
                     res.status(200).json({
                         status: 200,
                         message: 'Public Key retrieved',
-                        data: publicKey
+                        data: publicKey,
+                        name: name
                     })
                 })
             }).catch( function (error){
