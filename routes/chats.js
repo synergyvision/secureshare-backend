@@ -49,7 +49,7 @@ api.post('/', function (req, res){
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
             title = req.body.title
-            last_message = req.body.last_message
+            last_message = req.body.message
             sent = Date.now()
             console.log(sent)
             var chat = admin.firestore().collection('Chats')
