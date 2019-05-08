@@ -14,11 +14,12 @@ api.use(function(req, res, next) {
     next();
   });
 
-api.get('/', function (req, res){
+api.get('/:userid', function (req, res){
     firebase.auth().onAuthStateChanged(function (user){
         chats = []
+        uid = req.params.userid
         if (user){
-            admin.firestore().collection('Chats').get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(uid).collection('Chats').get().then(function (snapshot){
                 snapshot.forEach( doc => {
                     chat = {
                         [doc.id]: doc.data()
@@ -45,14 +46,14 @@ api.get('/', function (req, res){
     })
 })
 
-api.post('/', function (req, res){
+api.post('/:userid', function (req, res){
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
+            uid = req.params.userid;
             title = req.body.title
-            last_message = req.body.message
             sent = Date.now()
             console.log(sent)
-            var chat = admin.firestore().collection('Chats')
+            var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
             var newChatData = {
                 title: title,
                 timestamp: sent
@@ -61,7 +62,8 @@ api.post('/', function (req, res){
                 chat.doc(doc.id).collection('Participants').doc('Members').set({exists: true}).then( function (){
                     res.status(201).json({
                         status: 201,
-                        message: 'chat created succesfully'
+                        message: 'chat created succesfully',
+                        idChat: doc.id
                     })
                 }).catch(function (error){
                     res.status(400).json({
@@ -69,7 +71,7 @@ api.post('/', function (req, res){
                         message: error.message
                     })
                 })
-                console.log('Chat' + doc.id + 'created')
+                console.log('Chat ' + doc.id + ' created')
            }).catch(function (error){
                res.status(400).json({
                    status: error.code,
@@ -85,11 +87,12 @@ api.post('/', function (req, res){
     })    
 })
 
-api.delete('/:chatid', function (req, res){
+api.delete('/:userid/:chatid', function (req, res){
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
+            uid = req.params.userid;
             id = req.params.chatid;
-            var chat = admin.firestore().collection('Chats')
+            var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
             chat.doc(id).collection('Messages').get().then( function (snapshot){
                 snapshot.forEach( doc => {
                     chat.doc(id).collection('Messages').doc(doc.id).delete();
@@ -118,7 +121,8 @@ api.delete('/:chatid', function (req, res){
     })
 })
 
-api.post('/:chatid/participants', function (req,res){
+api.post('/:userid/:chatid/participants', function (req,res){
+    uid = req.params.userid;
     id = req.params.chatid;
     console.log(id);
     firebase.auth().onAuthStateChanged(function (user){
@@ -126,7 +130,7 @@ api.post('/:chatid/participants', function (req,res){
         if (user){
             id_participants = req.body.participants
             newMembers = JSON.parse(id_participants)
-            update = admin.firestore().collection('Chats').doc(id).collection('Participants').doc('Members').update(newMembers)
+            update = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(id).collection('Participants').doc('Members').update(newMembers)
             update.then( function (){
                 console.log('Se han insertado miembros en el chat');
                 res.status(201).json({
@@ -148,12 +152,13 @@ api.post('/:chatid/participants', function (req,res){
     })
 })
 
-api.delete('/:chatid/participants/:participantsid', function (req,res){
+api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
+    uid = req.params.userid
     id_chat = req.params.chatid;
     participant = req.params.participantsid
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            var deletes = admin.firestore().collection('Chats').doc(id_chat).collection('Participants').doc('Members').update({
+            var deletes = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(id_chat).collection('Participants').doc('Members').update({
                 [participant]: null
             })
             deletes.then(function (){
