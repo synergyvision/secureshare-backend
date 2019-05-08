@@ -46,38 +46,80 @@ api.get('/:userid', function (req, res){
     })
 })
 
+api.post('/:userid/checkChat', function (req,res){
+    firebase.auth().onAuthStateChanged( function (user){
+        if (user){
+            uid = req.params.userid;
+            title = req.body.title
+            admin.firestore().collection('Users').doc(uid).collection('Chats').where('title','==',title).get().then(function (query){
+                if (query.empty){
+                    res.status(200).json({
+                        status: 'ok',
+                        message: 'safe to create chat',
+                    })
+                }else{
+                    query.forEach(function (doc){
+                        res.status(200).json({
+                            status: 'chat already exists',
+                            id: doc.id
+                        })
+                    })
+                }
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        } else{
+            res.status(401).json({
+                status: 401,
+                message: 'You need to be logged in to acces content'
+            })
+        }    
+    })    
+})
+
 api.post('/:userid', function (req, res){
     firebase.auth().onAuthStateChanged( function (user){
         if (user){
             uid = req.params.userid;
             title = req.body.title
             sent = Date.now()
-            console.log(sent)
-            var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
-            var newChatData = {
-                title: title,
-                timestamp: sent
-            }
-           chat.add(newChatData).then( function (doc) {
-                chat.doc(doc.id).collection('Participants').doc('Members').set({exists: true}).then( function (){
-                    res.status(201).json({
-                        status: 201,
-                        message: 'chat created succesfully',
-                        idChat: doc.id
+            admin.firestore().collection('Users').doc(uid).collection('Chats').where('title','==',title).get().then(function (query){
+                if (query.empty){
+                    var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
+                    var newChatData = {
+                        title: title,
+                        timestamp: sent
+                    }
+                    chat.add(newChatData).then( function (doc) {
+                            chat.doc(doc.id).collection('Participants').doc('Members').set({exists: true}).then( function (){
+                                res.status(201).json({
+                                    status: 201,
+                                    message: 'chat created succesfully',
+                                    idChat: doc.id
+                                })
+                            }).catch(function (error){
+                                res.status(400).json({
+                                    status: error.code,
+                                    message: error.message
+                                })
+                            })
+                            console.log('Chat ' + doc.id + ' created')
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
                     })
-                }).catch(function (error){
-                    res.status(400).json({
-                        status: error.code,
-                        message: error.message
+                }else{
+                    res.status(200).json({
+                        status: 200,
+                        message: 'chat already exists',
                     })
-                })
-                console.log('Chat ' + doc.id + ' created')
-           }).catch(function (error){
-               res.status(400).json({
-                   status: error.code,
-                   message: error.message
-               })
-           })
+                }
+            })
         } else{
             res.status(401).json({
                 status: 401,

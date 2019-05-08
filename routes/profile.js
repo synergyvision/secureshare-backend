@@ -559,52 +559,38 @@ api.get('/:userid/contacts', function (req,res) {
         }
     })
 })
+var getChats = function (uid){
+    db = admin.firestore();
+    chats = [];
+   return db.collection('Users').doc(uid).collection('Chats').get().then(function(snapshot){
+        snapshot.forEach(doc => {
+            chat = {
+                title: doc.get('title'),
+            }
+            chats.push(chat)            
+        })
+        return chats;
+    })
 
-var getChats = function (chatKeys){
-    chats =[];
-    console.log('here');
-    
 }
 
 api.get('/:userid/chats', function (req,res) {
     uid = req.params.userid;
     firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            user_chats = [];
-            chats = admin.firestore().collection('Chats');
-            i = 0;
-            chats.get().then(function (snapshot){
-                snapshot.forEach(doc => {
-                    chats.doc(doc.id).collection('Participants').where(uid, '==', true).get().then(snap => {
-                        snap.forEach(data => {
-                            chat = {
-                                [doc.id]: doc.data()
-                            }
-                            user_chats.push(chat)
-                        })
-                        if (i == snapshot.size){
-                            console.log(user_chats);
-                            console.log('Chats retrieved for user ', uid)
-                            res.status(200).json({
-                                status: 200,
-                                messagge: 'User chats retrieved',
-                                data: user_chats
-                            }) 
-                        }
-                    }).catch(function (error){
-                        res.status(400).json({
-                            status: error.code,
-                            message: error.message
-                        })
-                    })
-                    i++;
+            var uid = req.params.userid;
+            var chats = getChats(uid);
+            chats.then((chats) => {
+                res.status(200).json({
+                    message: 'Chats retrieved',
+                    data: chats
                 })
             }).catch(function (error){
                 res.status(400).json({
                     status: error.code,
                     message: error.message
                 })
-            })   
+            })
         }else{
             res.json({
                 status: 401,
