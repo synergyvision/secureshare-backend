@@ -15,7 +15,7 @@ api.use(function(req, res, next) {
   });
 
 api.get('/:userid', function (req, res){
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         chats = []
         uid = req.params.userid
         if (user){
@@ -38,16 +38,18 @@ api.get('/:userid', function (req, res){
                 })
             })   
         }else{
+            unsubscribe();
             res.status(401).json({
                 staus: 401,
                 message: 'You need to be logged in to access this content'
             })
         }
     })
+    unsubscribe();
 })
 
 api.post('/:userid/checkChat', function (req,res){
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             uid = req.params.userid;
             title = req.body.title
@@ -72,20 +74,23 @@ api.post('/:userid/checkChat', function (req,res){
                 })
             })
         } else{
+            unsubscribe();
             res.status(401).json({
                 status: 401,
                 message: 'You need to be logged in to acces content'
             })
         }    
-    })    
+    })
+    unsubscribe();    
 })
 
 api.post('/:userid', function (req, res){
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             uid = req.params.userid;
             title = req.body.title
             sent = Date.now()
+            participants = JSON.parse(req.body.participants);
             admin.firestore().collection('Users').doc(uid).collection('Chats').where('title','==',title).get().then(function (query){
                 if (query.empty){
                     var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
@@ -94,7 +99,8 @@ api.post('/:userid', function (req, res){
                         timestamp: sent
                     }
                     chat.add(newChatData).then( function (doc) {
-                            chat.doc(doc.id).collection('Participants').doc('Members').set({exists: true}).then( function (){
+                            chat.doc(doc.id).collection('Participants').doc('Members').set(participants).then( function (){
+                                console.log('here');
                                 res.status(201).json({
                                     status: 201,
                                     message: 'chat created succesfully',
@@ -114,23 +120,23 @@ api.post('/:userid', function (req, res){
                         })
                     })
                 }else{
-                    res.status(200).json({
-                        status: 200,
-                        message: 'chat already exists',
-                    })
+                    console.log('chat exist');
                 }
             })
+                
         } else{
+            unsubscribe();
             res.status(401).json({
                 status: 401,
                 message: 'You need to be logged in to acces content'
             })
         }    
-    })    
+    })
+    unsubscribe();    
 })
 
 api.delete('/:userid/:chatid', function (req, res){
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             uid = req.params.userid;
             id = req.params.chatid;
@@ -154,20 +160,22 @@ api.delete('/:userid/:chatid', function (req, res){
                     message: error.message
                 })
             })
-        }else{       
+        }else{
+            unsubscribe();       
             res.status(401).json({
                 status: 401,
                 message: 'You need to be logged in to acces content'
             })
         }
     })
+    unsubscribe();
 })
 
 api.post('/:userid/:chatid/participants', function (req,res){
     uid = req.params.userid;
     id = req.params.chatid;
     console.log(id);
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         console.log('aca')
         if (user){
             id_participants = req.body.participants
@@ -186,19 +194,21 @@ api.post('/:userid/:chatid/participants', function (req,res){
                 })
             })
         }else{
+            unsubscribe();
             res.status(401).json({
                 status: 402,
                 message: 'You need to be logged in to access content'
             })
         }
     })
+    unsubscribe();
 })
 
 api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
     uid = req.params.userid
     id_chat = req.params.chatid;
     participant = req.params.participantsid
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var deletes = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(id_chat).collection('Participants').doc('Members').update({
                 [participant]: null
@@ -221,6 +231,7 @@ api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
             })
         }
     })
+    unsubscribe();
 })
 
 module.exports = api;

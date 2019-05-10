@@ -15,7 +15,7 @@ api.use(function(req, res, next) {
   });
 
 api.get('/', function (req,res){
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         comments =[]
         if (user){
             admin.firestore().collection('Comments').get().then(function (snapshot){
@@ -42,11 +42,12 @@ api.get('/', function (req,res){
                 messgae: 'You need to be logged in to access this content'
             })
         }
-    }) 
+    })
+    unsubscribe(); 
 })
 
 api.post('/', function (req, res) {
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var comment = admin.firestore().collection('Comments');
             var commentData = {
@@ -72,12 +73,13 @@ api.post('/', function (req, res) {
                 messgae: 'You need to be logged in to access this content'
             })
         }
-    })    
+    }) 
+    unsubscribe();   
 })
 
 api.put('/:commentId', function (req,res){
     comment_id = req.params.commentId
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var newCommentData = {
                 content: req.body.content,
@@ -102,11 +104,12 @@ api.put('/:commentId', function (req,res){
             })
         }
     })
+    unsubscribe();
 })
 
 api.delete('/:commentId', function (req,res){
     comment_id =req.params.commentId
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             var comment = admin.firestore().collection('Comments').doc(comment_id).delete();
             res.json({
@@ -120,6 +123,7 @@ api.delete('/:commentId', function (req,res){
             }) 
         }
     })
+    unsubscribe();
 })
 
 module.exports = api;

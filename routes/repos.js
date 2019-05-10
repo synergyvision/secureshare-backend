@@ -17,7 +17,7 @@ api.use(function(req, res, next) {
 
 api.post('/:userid/loginGit', function (req,res){
     
-    firebase.auth().onAuthStateChanged( function (user){
+   var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             uid = req.param.userid;
 
@@ -28,6 +28,7 @@ api.post('/:userid/loginGit', function (req,res){
             })
         }
     })
+    unsubscribe();
 
 })
 

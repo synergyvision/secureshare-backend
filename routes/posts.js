@@ -15,7 +15,7 @@ api.use(function(req, res, next) {
   });
 
 api.get('/', function (req,res){
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         posts = [];
         if (user){
             admin.firestore().collection('Posts').get().then(function (snapshot){
@@ -40,12 +40,13 @@ api.get('/', function (req,res){
                 messgae: 'You need to be logged in to access this content'
             })
         }
-    })    
+    }) 
+    unsubscribe();   
 })
 
 api.post('/', function (req,res){
    
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var postData = admin.firestore().collection('Posts');
             var newPostData = postData.add({
@@ -71,11 +72,12 @@ api.post('/', function (req,res){
             })
         }
     })
+    unsubscribe();
 
 })
 
 api.put('/:postId', function (req,res){
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             post_id = req.params.postId;
             var postData = {
@@ -100,13 +102,14 @@ api.put('/:postId', function (req,res){
                 message: 'you need to log in to acces this content'
             })
         } 
-    })   
+    }) 
+    unsubscribe();  
 
 })
 
 api.delete('/:postId', function (req,res){
     post_id = req.params.postId
-    firebase.auth().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             var deleteDoc = admin.firestore().collection('Posts').doc(post_id).delete();
             deleteDoc.then(function (){
@@ -128,6 +131,7 @@ api.delete('/:postId', function (req,res){
             }) 
         }
     })
+    unsubscribe();
 })
 
 module.exports = api;  

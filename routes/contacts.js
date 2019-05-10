@@ -30,8 +30,8 @@ var requestInfo =  function (user_id,request_id){
 }
 
 api.get('/:userid/requests', function (req, res){
-    uid = req.params.userid,
-    firebase.auth().onAuthStateChanged(function (user){
+    uid = req.params.userid
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         requests = []
         var i = 0;
         var quantity = 0;
@@ -76,12 +76,13 @@ api.get('/:userid/requests', function (req, res){
 
         }
     })
+    unsubscribe();
 
 })
 
 api.post('/:userid/requests', function (req, res){
-    uid = req.params.userid,
-    firebase.auth().onAuthStateChanged(function (user){
+    uid = req.params.userid
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             var requestData = {
                 id_to: req.body.id_to,
@@ -110,12 +111,13 @@ api.post('/:userid/requests', function (req, res){
         }
 
     })
+    unsubscribe();
 })
 
 api.put('/:userid/requests/:requestid', function (req,res){
     uid = req.params.userid,
     request_id = req.params.requestid
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             if (req.body.status == 'true'){
                 newRequestData = {
@@ -179,13 +181,14 @@ api.put('/:userid/requests/:requestid', function (req,res){
             })
         }
     })
+    unsubscribe();
 
 })
 
 api.delete('/:userid', function (req,res){
     uid = req.params.userid
     id_user = req.body.user_id // the user to unfriend
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             admin.firestore().collection('Users').doc(uid).collection('contacts').where('userId', '==', id_user).get().then(function (snapshot){
             snapshot.forEach(doc => {
@@ -220,7 +223,8 @@ api.delete('/:userid', function (req,res){
                 message: 'you need to log in to access this content'
             }) 
         }
-    })     
+    }) 
+    unsubscribe();    
 })    
 
 var contact = function (user_id,id){
@@ -239,7 +243,7 @@ var contact = function (user_id,id){
 
 api.get('/:userid/users', function (req,res){
     uid = req.params.userid
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             users = []
             var i = 0;
@@ -272,6 +276,7 @@ api.get('/:userid/users', function (req,res){
             }) 
         }
     })
+    unsubscribe();
 
 })
 

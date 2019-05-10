@@ -58,7 +58,7 @@ api.post("/sendEmail", function (req , res){
 
 api.get("/activeUser", function (req,res) {
     var au = fire.auth();
-    au.onAuthStateChanged(function(user) {
+    var unsubscribe = au.onAuthStateChanged(function(user) {
         if (user) {
           res.json({
               user: user.email,
@@ -70,6 +70,7 @@ api.get("/activeUser", function (req,res) {
           })
         }
       });
+      unsubscribe();  
 
 })
 

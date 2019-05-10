@@ -9,7 +9,7 @@ api.use(function(req, res, next) {
     next();
   });
 
-api.post('/', function (req, res){
+api.get('/', function (req, res){
 
     var auth = firebase.auth();
 

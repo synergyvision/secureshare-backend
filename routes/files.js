@@ -27,7 +27,7 @@ api.use(function(req, res, next) {
   
 
 api.post('/files', multer.single('file'), (req, res) => {
-  firebase.auth().onAuthStateChanged( function (user){
+  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
     if (user){
       uid = req.body.uid;
       var bucket = admin.storage().bucket();
@@ -62,16 +62,18 @@ api.post('/files', multer.single('file'), (req, res) => {
       blobStream.end(req.file.buffer);
 
     }else{
+
       res.status(401).json({
         status: 401,
         message: 'You need to log in to access content'
       })
     }
   })
+  unsubscribe();
 })
 
 api.post('/images', multer.single('file'), (req, res) => {
-  firebase.auth().onAuthStateChanged( function (user){
+  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
     if (user){
       uid = req.body.uid;
       var bucket = admin.storage().bucket();
@@ -112,6 +114,7 @@ api.post('/images', multer.single('file'), (req, res) => {
       })
     }
   })
+  unsubscribe();
 })
 
 module.exports = api;  

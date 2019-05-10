@@ -18,7 +18,7 @@ api.use(function(req, res, next) {
 
 api.get('/:chatId', function (req,res){
     chat = req.params.chatId;
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsunscribe = firebase.auth().onAuthStateChanged(function (user){
         messages = [];
         if (user){
             admin.firestore().collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
@@ -47,10 +47,11 @@ api.get('/:chatId', function (req,res){
             })
         }
     })
+    unsubscribe();
 })
 
 api.post('/', function (req,res){
-    firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             sender= req.body.id_sender
             chat= req.body.id_chat
@@ -80,6 +81,7 @@ api.post('/', function (req,res){
             })
         }
     })
+    unsubscribe();
 })
 
 module.exports = api;
