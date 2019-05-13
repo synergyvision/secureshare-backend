@@ -123,7 +123,7 @@ api.put("/:userid/resetPassword" , function (req,res){
 
 
 
-var storeKeys =  function (uid,pubkey,privkey,pass,keyName){
+var storeKeys =  function (uid,pubkey,privkey,keyName){
     var db = admin.firestore();
     postPBData = db.collection('Users').doc(uid).collection('Keys');
     var newPostPBData = postPBData.add({
