@@ -129,7 +129,6 @@ var storeKeys =  function (uid,pubkey,privkey,pass,keyName){
     var newPostPBData = postPBData.add({
         PubKey: pubkey,
         PrivKey: privkey,
-        passphrase: pass,
         name: keyName,
         default: false
     }).then(function (){ 
@@ -151,9 +150,8 @@ api.post("/:userid/storeKeys", function (req,res){
             var uid = req.params.userid;
             var pubkey = req.body.pubkey;
             var privkey = req.body.privkey;
-            var pass = req.body.pass;
             var keyName= req.body.keyname;
-            storeKeys(uid,pubkey,privkey,pass,keyName);
+            storeKeys(uid,pubkey,privkey,keyName);
             console.log('Stored public keys for user ' + uid);
             res.status(200).json({
                 status:200,
