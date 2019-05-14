@@ -19,7 +19,7 @@ api.get('/:userid', function (req, res){
         chats = []
         uid = req.params.userid
         if (user){
-            admin.firestore().collection('Users').doc(uid).collection('Chats').get().then(function (snapshot){
+            admin.firestore().collection('Chats').get().then(function (snapshot){
                 snapshot.forEach( doc => {
                     chat = {
                         [doc.id]: doc.data()
@@ -53,7 +53,7 @@ api.post('/:userid/checkChat', function (req,res){
         if (user){
             uid = req.params.userid;
             title = req.body.title
-            admin.firestore().collection('Users').doc(uid).collection('Chats').where('title','==',title).get().then(function (query){
+            admin.firestore().collection('Chats').where('title','==',title).get().then(function (query){
                 if (query.empty){
                     res.status(200).json({
                         status: 'ok',
@@ -90,40 +90,26 @@ api.post('/:userid', function (req, res){
             uid = req.params.userid;
             title = req.body.title
             sent = Date.now()
-            participants = JSON.parse(req.body.participants);
-            admin.firestore().collection('Users').doc(uid).collection('Chats').where('title','==',title).get().then(function (query){
-                if (query.empty){
-                    var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
-                    var newChatData = {
-                        title: title,
-                        timestamp: sent
-                    }
-                    chat.add(newChatData).then( function (doc) {
-                            chat.doc(doc.id).collection('Participants').doc('Members').set(participants).then( function (){
-                                console.log('here');
-                                res.status(201).json({
-                                    status: 201,
-                                    message: 'chat created succesfully',
-                                    idChat: doc.id
-                                })
-                            }).catch(function (error){
-                                res.status(400).json({
-                                    status: error.code,
-                                    message: error.message
-                                })
-                            })
-                            console.log('Chat ' + doc.id + ' created')
-                    }).catch(function (error){
-                        res.status(400).json({
-                            status: error.code,
-                            message: error.message
-                        })
-                    })
-                }else{
-                    console.log('chat exist');
-                }
+            members = JSON.parse(req.body.participants);
+            ref = admin.firestore().collection('Chats');
+            data = {
+                title: title,
+                created: sent,
+                members: members
+            }
+            ref.add(data).then(function (doc){
+                ref.doc(doc.id).update({chatID: doc.id});
+                res.status(201).json({
+                    status: 201,
+                    message: 'chat created',
+                    Id: doc.id
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
             })
-                
         } else{
             unsubscribe();
             res.status(401).json({
@@ -140,16 +126,9 @@ api.delete('/:userid/:chatid', function (req, res){
         if (user){
             uid = req.params.userid;
             id = req.params.chatid;
-            var chat = admin.firestore().collection('Users').doc(uid).collection('Chats');
-            chat.doc(id).collection('Messages').get().then( function (snapshot){
-                snapshot.forEach( doc => {
-                    chat.doc(id).collection('Messages').doc(doc.id).delete();
-                    console.log('Deleted message ' + doc.id);
-                })
-                chat.doc(id).collection('Participants').doc('Members').delete();
-                console.log('Deleted list of participants');
+            var chat = admin.firestore().collection('Chats');
+            chat.doc(id).get().then( function (snapshot){
                 chat.doc(id).delete()
-                console.log('finally deleted chat')
                 res.status(200).json({
                     status:200,
                     message: 'The chat was deleted'
@@ -174,13 +153,12 @@ api.delete('/:userid/:chatid', function (req, res){
 api.post('/:userid/:chatid/participants', function (req,res){
     uid = req.params.userid;
     id = req.params.chatid;
-    console.log(id);
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        console.log('aca')
         if (user){
-            id_participants = req.body.participants
-            newMembers = JSON.parse(id_participants)
-            update = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(id).collection('Participants').doc('Members').update(newMembers)
+            id_member = req.body.id_member;
+            key = req.body.key;
+            update = admin.firestore().collection('Chats').doc(id).update(
+                {['members.'+id_member]: key })
             update.then( function (){
                 console.log('Se han insertado miembros en el chat');
                 res.status(201).json({
@@ -210,8 +188,8 @@ api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
     participant = req.params.participantsid
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            var deletes = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(id_chat).collection('Participants').doc('Members').update({
-                [participant]: null
+            var deletes = admin.firestore().collection('Chats').doc(id_chat).update({
+                ['members.'+participant]: null 
             })
             deletes.then(function (){
                 res.status(200).json({
