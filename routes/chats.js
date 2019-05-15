@@ -212,4 +212,34 @@ api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
     unsubscribe();
 })
 
+api.post('/:userid/:chatid/changeKey', function (req,res){
+    uid = req.params.userid;
+    chatId = req.params.chatid;
+    key = req.body.key;
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            update = admin.firestore().collection('Chats').doc(chatId).update({['members.'+uid]: key});
+            update.then(function (){
+                res.status(200).json({
+                    status: 200,
+                    message: 'the user has updated its chat key'
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                status: 402,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe();
+
+
+});
+
 module.exports = api;

@@ -16,12 +16,13 @@ api.use(function(req, res, next) {
 
 
 
-api.get('/:chatId', function (req,res){
+api.get('/:userid/:chatId', function (req,res){
+    uid = req.params.userid;
     chat = req.params.chatId;
-    var unsunscribe = firebase.auth().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         messages = [];
         if (user){
-            admin.firestore().collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
                 snapshot.forEach( doc =>{
                     message = {
                         [doc.id]: doc.data()
@@ -50,20 +51,32 @@ api.get('/:chatId', function (req,res){
     unsubscribe();
 })
 
-api.post('/', function (req,res){
+api.post('/:userid/:chatid/messages', function (req,res){
+    uid = req.params.userid;
+    chat = req.params.chatid;
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             sender= req.body.id_sender
-            chat= req.body.id_chat
             content= req.body.message
             date_sent= Date.now()
-            var newMessage = {
-                id_sender: sender,
-                content: content,
-                date_sent: date_sent
+            if (req.body.response_to){
+                var newMessage = {
+                    id_sender: sender,
+                    content: content,
+                    date_sent: date_sent,
+                    response_to: req.body.response_to
+                }
+
+            }else{
+                var newMessage = {
+                    id_sender: sender,
+                    content: content,
+                    date_sent: date_sent
+                }
             }
-            var post = admin.firestore().collection('Chats').doc(chat).collection('Messages');
-            post.add(newMessage).then(function (){
+            var post = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages');
+            post.add(newMessage).then(function (doc){
+                post.doc(doc.id).update({message_id: doc.id})
                 res.status(201).json({
                     status:201,
                     message: 'The message has been sent'
