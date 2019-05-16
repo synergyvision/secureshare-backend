@@ -52,6 +52,7 @@ api.get('/:userid/:chatId', function (req,res){
 })
 
 api.post('/:userid/:chatid/messages', function (req,res){
+    j = 0
     uid = req.params.userid;
     chat = req.params.chatid;
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
@@ -59,34 +60,49 @@ api.post('/:userid/:chatid/messages', function (req,res){
             sender= req.body.id_sender
             content= req.body.message
             date_sent= Date.now()
-            if (req.body.response_to){
-                var newMessage = {
-                    id_sender: sender,
-                    content: content,
-                    date_sent: date_sent,
-                    response_to: req.body.response_to
-                }
+            recipients = JSON.parse(req.body.recipients);
+                if (req.body.response_to){
+                    var newMessage = {
+                        id_sender: sender,
+                        content: content,
+                        date_sent: date_sent,
+                        response_to: req.body.response_to
+                    }
 
-            }else{
-                var newMessage = {
-                    id_sender: sender,
-                    content: content,
-                    date_sent: date_sent
+                }else{
+                    var newMessage = {
+                        id_sender: sender,
+                        content: content,
+                        date_sent: date_sent
+                    }
                 }
-            }
-            var post = admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages');
-            post.add(newMessage).then(function (doc){
-                post.doc(doc.id).update({message_id: doc.id})
-                res.status(201).json({
-                    status:201,
-                    message: 'The message has been sent'
-                })
-            }).catch(function (error){
-                res.status(400).json({
-                    status: error.code,
-                    message: error.message
-                })
-            })
+                for (i = 0; i < recipients.length;i++){
+                    var post = admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).collection('Messages');
+                    post.add(newMessage).then(function (doc){
+                        if (doc.exists){
+                            post.doc(doc.id).update({message_id: doc.id})
+                        }    
+                        try {
+                            j++;
+                            if (j == recipients.length){
+                                res.status(201).json({
+                                    status:201,
+                                    message: 'The message has been sent'
+                                })
+                            }      
+                        }
+                        catch(error){
+                            console.log(error);
+                        }
+                         
+                      
+                    }).catch(function (error){
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message
+                        })
+                    })
+            }    
         }else{
             res.status(401).json({
                 staus: 401,

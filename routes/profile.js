@@ -169,7 +169,6 @@ api.post("/:userid/storeKeys", function (req,res){
 
 
 var getKeys = function (uid){
-    console.log('here');
     db = admin.firestore();
     keys = [];
     var i = 0;
