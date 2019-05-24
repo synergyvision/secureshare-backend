@@ -167,10 +167,9 @@ api.post('/:userid', function (res,res){
                 sender: sender,
                 timestamp: timestamp,
                 content: content,
-                recipient: recipient,
                 status: 'unread'
             }
-            admin.firestore().collection('Users').doc(uid).collection('Messages').add(message).then( function (){
+            admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( function (){
                 res.status(201).json({
                     status: 200,
                     message: 'Message has been sent'
