@@ -38,7 +38,6 @@ api.get('/:userid', function (req, res){
                 })
             })   
         }else{
-            unsubscribe();
             res.status(401).json({
                 staus: 401,
                 message: 'You need to be logged in to access this content'

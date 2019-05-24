@@ -113,4 +113,127 @@ api.post('/:userid/:chatid/messages', function (req,res){
     unsubscribe();
 })
 
+// the following functions are for singular messages, not chats
+
+api.get('/:userid', function (req,res){
+    uid = req.params.userid;
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            admin.firestore().collection('Users').doc('uid').collection('Messages').get().then(function (snapshot){
+                if (snapshot.empty){
+                    res.status(200).json({
+                        status: 404,
+                        message: 'No messages found'
+                    })
+                }else{
+                    messages = [];
+                    snapshot.forEach( doc => {
+                        message = {
+                            [doc.id]: doc.data()
+                        }
+                        messages.push(message);
+                    })
+                    res.status(200).json({
+                        status: 200,
+                        message: 'All messages have been retrieved',
+                        data: messages
+                    })
+                }
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })    
+        }else{
+            res.status(401).json({
+                staus: 401,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe()
+})
+
+api.post('/:userid', function (res,res){
+    uid = req.params.userid
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (){
+        if (user){
+            sender = req.body.username;
+            timestamp = Date.now();
+            content = req.body.content;
+            recipient = req.body.recipient;
+            var message = {
+                sender: sender,
+                timestamp: timestamp,
+                content: content,
+                recipient: recipient,
+                status: 'unread'
+            }
+            admin.firestore().collection('Users').doc(uid).collection('Messages').add(message).then( function (){
+                res.status(201).json({
+                    status: 200,
+                    message: 'Message has been sent'
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                staus: 401,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe();
+})
+
+api.get('/:userid/:messageid', function (req,res){
+    uid = req.params.userid
+    var unsubscribe = firebase().onAuthStateChanged( function (user){
+        if (user){
+            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(function (doc){
+                res.status(200).json({
+                    status: 200,
+                    message: 'Message data retrieved',
+                    data: doc.data()
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                staus: 401,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe();
+})
+
+api.delete('/:userid/:messageid', function (req,res) {
+    uid = req.params.userid
+    var unsubscribe = firebase().onAuthStateChanged(function (user){
+        if (user){
+            admin.firestore().collection('Users').doc(uid).collection().doc(req.params.messageid).delete();
+            res.status(200).json({
+                status: 200,
+                message: 'The message was deleted'
+            })
+        }else{
+            res.status(401).json({
+                staus: 401,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe();
+})
+
 module.exports = api;
