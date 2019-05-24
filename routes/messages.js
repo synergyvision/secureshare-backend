@@ -16,7 +16,7 @@ api.use(function(req, res, next) {
 
 
 
-api.get('/:userid/:chatId', function (req,res){
+api.get('/:userid/chat/:chatid', function (req,res){
     uid = req.params.userid;
     chat = req.params.chatId;
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
@@ -117,9 +117,10 @@ api.post('/:userid/:chatid/messages', function (req,res){
 
 api.get('/:userid', function (req,res){
     uid = req.params.userid;
+    console.log('hola')
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            admin.firestore().collection('Users').doc('uid').collection('Messages').get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(uid).collection('Messages').get().then(function (snapshot){
                 if (snapshot.empty){
                     res.status(200).json({
                         status: 404,
@@ -157,7 +158,7 @@ api.get('/:userid', function (req,res){
 
 api.post('/:userid', function (req,res){
     uid = req.params.userid
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             sender = req.body.username;
             timestamp = Date.now();
@@ -192,7 +193,7 @@ api.post('/:userid', function (req,res){
 
 api.get('/:userid/:messageid', function (req,res){
     uid = req.params.userid
-    var unsubscribe = firebase().onAuthStateChanged( function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(function (doc){
                 res.status(200).json({
@@ -218,9 +219,9 @@ api.get('/:userid/:messageid', function (req,res){
 
 api.delete('/:userid/:messageid', function (req,res) {
     uid = req.params.userid
-    var unsubscribe = firebase().onAuthStateChanged(function (user){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
-            admin.firestore().collection('Users').doc(uid).collection().doc(req.params.messageid).delete();
+            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).delete();
             res.status(200).json({
                 status: 200,
                 message: 'The message was deleted'
