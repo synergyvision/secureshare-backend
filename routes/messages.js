@@ -155,7 +155,7 @@ api.get('/:userid', function (req,res){
     unsubscribe()
 })
 
-api.post('/:userid', function (res,res){
+api.post('/:userid', function (req,res){
     uid = req.params.userid
     var unsubscribe = firebase.auth().onAuthStateChanged( function (){
         if (user){
