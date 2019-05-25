@@ -117,7 +117,6 @@ api.post('/:userid/:chatid/messages', function (req,res){
 
 api.get('/:userid', function (req,res){
     uid = req.params.userid;
-    console.log('hola')
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
             admin.firestore().collection('Users').doc(uid).collection('Messages').get().then(function (snapshot){
@@ -162,6 +161,7 @@ api.post('/:userid', function (req,res){
     var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
             sender = req.body.username;
+            id_sender = req.body.id_sender;
             timestamp = Date.now();
             content = req.body.content;
             recipient = req.body.recipient;
