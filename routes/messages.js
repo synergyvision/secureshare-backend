@@ -130,7 +130,8 @@ api.get('/:userid', function (req,res){
                     messages = [];
                     snapshot.forEach( doc => {
                         message = {
-                            [doc.id]: doc.data()
+                            data: doc.data(),
+                            id: doc.id
                         }
                         messages.push(message);
                     })
