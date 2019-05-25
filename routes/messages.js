@@ -167,6 +167,7 @@ api.post('/:userid', function (req,res){
             recipient = req.body.recipient;
             var message = {
                 sender: sender,
+                id_sender: id_sender,
                 timestamp: timestamp,
                 content: content,
                 status: 'unread'
