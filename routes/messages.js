@@ -219,6 +219,34 @@ api.get('/:userid/:messageid', function (req,res){
     unsubscribe();
 })
 
+api.put('/:userid/:messageid', function (req,res){
+    uid = req.params.userid;
+    message = req.params.messageid;
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            update = admin.firestore().collection('Users').doc(uid).collection('Messages').doc(message).update({
+                status: 'read'
+            })
+            update.then( function(){
+                res.status(200).json({
+                    status: 200,
+                    message: 'Messages status changed to read'
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                staus: 401,
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+})
+
 api.delete('/:userid/:messageid', function (req,res) {
     uid = req.params.userid
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
