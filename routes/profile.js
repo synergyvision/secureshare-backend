@@ -614,6 +614,37 @@ api.get('/:userid/chats', function (req,res) {
     unsubscribe();
 })
 
+api.delete('/:userid/chats/:chatid', function (req,res){
+    uid = req.params.userid;
+    chatId = req.params.chatid;
+    var unsubscribe =  firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+           messages =  admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').get();
+           messages.then(function(snapshot){
+                snapshot.forEach( doc =>{
+                    admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').doc(doc.id).delete();                    
+                })
+                res.status(200).json({
+                    status: 200,
+                    message: 'User copy of messages deleted'
+                })    
+            }).catch(function (error){
+                console.log(error.message)
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.json({
+                status: 401,
+                message: 'You need to be loggen in to access content'
+            })
+        }
+    })
+    unsubscribe();
+})
+
 
 
 
