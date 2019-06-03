@@ -18,7 +18,7 @@ api.use(function(req, res, next) {
 
 api.get('/:userid/chat/:chatid', function (req,res){
     uid = req.params.userid;
-    chat = req.params.chatId;
+    chat = req.params.chatid;
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         messages = [];
         if (user){
