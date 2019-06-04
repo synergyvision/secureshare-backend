@@ -25,7 +25,8 @@ api.get('/:userid/chat/:chatid', function (req,res){
             admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
                 snapshot.forEach( doc =>{
                     message = {
-                        [doc.id]: doc.data()
+                        data: doc.data(),
+                        id: doc.id
                     }
                     messages.push(message)
                 })
