@@ -78,7 +78,7 @@ api.post('/:userid/:chatid/messages', function (req,res){
                     }
                 }
                 for (i = 0; i < recipients.length;i++){
-                    admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).update({status: true})
+                    admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).set({status: true})
                     var post = admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).collection('Messages');
                     post.add(newMessage).then(function (doc){
                         if (doc.exists){
