@@ -572,18 +572,26 @@ api.get('/:userid/contacts', function (req,res) {
     })
     unsubscribe();
 })
-var getChats = function (uid){
+
+var getChatInfo = function (id) {
+    db = admin.firestore();
+    return db.collection('Chats').doc(id).get().then(function (doc){
+        return doc.data()
+    })
+}
+
+var getChats = async (uid) => {
     db = admin.firestore();
     chats = [];
-   return db.collection('Users').doc(uid).collection('Chats').get().then(function(snapshot){
-        snapshot.forEach(doc => {
-            chat = {
-                title: doc.get('title'),
-            }
-            chats.push(chat)            
-        })
-        return chats;
-    })
+    var i =0;
+    chatsCollection = await db.collection('Users').doc(uid).collection('Chats').get()
+    for (doc of chatsCollection.docs){
+        data = await getChatInfo(doc.id);
+        chats.push(data);
+    }
+    return chats;
+
+    
 
 }
 
@@ -593,7 +601,7 @@ api.get('/:userid/chats', function (req,res) {
         if (user){
             var uid = req.params.userid;
             var chats = getChats(uid);
-            chats.then((chats) => {
+            chats.then((chats) =>{
                 res.status(200).json({
                     message: 'Chats retrieved',
                     data: chats
