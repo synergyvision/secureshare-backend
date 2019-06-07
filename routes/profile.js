@@ -375,6 +375,42 @@ api.post("/:userid/getPublicKey", function (req,res){
     unsubscribe();
 })
 
+api.post("/:userid/getPublicKeys", function (req,res){
+    uid = req.param.userid;
+    ids = JSON.parse(req.body.id);
+    keys = [];
+    var unsubscribe = firebase.auth().onAuthStateChanged( async (user) => {
+        if (user){
+            for (i = 0; i < ids.length; i++){
+                await admin.firestore().collection('Users').doc(ids[i]).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
+                    querySnapshot.forEach( function (doc){
+                        publicKey = doc.get('PubKey');
+                        console.log(publicKey);
+                        keys.push(publicKey);
+                    })
+                }).catch( function (error){
+                    res.status(400).json({
+                        status: error.code,
+                        message: error.message
+                    })
+                })
+                if (i == (ids.length-1)){
+                    res.status(200).json({
+                        status: 200,
+                        data: keys
+                    })
+                }
+
+            }
+        }else{
+            res.status(401).json({
+                message: 'You need to be logged in to access content'
+            })
+        }
+    })
+    unsubscribe();
+})
+
 api.post("/:userid/encrypt", function (req,res) {
     var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         if (user){
