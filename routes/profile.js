@@ -375,7 +375,7 @@ api.post("/:userid/getPublicKey", function (req,res){
     unsubscribe();
 })
 
-api.post("/:userid/getPublicKeys", function (req,res){
+api.post("/:userid/getMultipleKeys", function (req,res){
     uid = req.param.userid;
     ids = JSON.parse(req.body.id);
     keys = [];
