@@ -48,11 +48,16 @@ api.post('/', function (req,res){
    
     var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
         if (user){
+            if (req.body.image_id){
+                image = req.body.image_id
+            }else{
+                image = null
+            }
             var postData = admin.firestore().collection('Posts');
             var newPostData = postData.add({
                  content: req.body.content,
                  user_id: req.body.uid,
-                 image_id: req.body.image_id,
+                 image_id: image,
                  public: req.body.public
             }).then(ref => {
                 console.log('Post created with id: ', ref.id)
