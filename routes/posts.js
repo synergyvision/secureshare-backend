@@ -52,7 +52,8 @@ api.post('/', function (req,res){
             var newPostData = postData.add({
                  content: req.body.content,
                  user_id: req.body.uid,
-                 image_id: req.body.image_id
+                 image_id: req.body.image_id,
+                 public: req.body.public
             }).then(ref => {
                 console.log('Post created with id: ', ref.id)
                 res.status(201).json({
