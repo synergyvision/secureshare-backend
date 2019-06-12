@@ -20,8 +20,11 @@ api.get('/', function (req,res){
         if (user){
             admin.firestore().collection('Posts').get().then(function (snapshot){
                 snapshot.forEach( doc => {
-                    post = doc.data()
-                    posts.push({[doc.id]: post});
+                    post = {
+                        id: doc.id,
+                        data: doc.data()
+                    }
+                    posts.push(post);
                 })
                 res.status(200).json({
                     status: 200,
