@@ -61,7 +61,9 @@ api.post('/', function (req,res){
                  content: req.body.content,
                  user_id: req.body.uid,
                  image_id: image,
-                 public: req.body.public
+                 public: req.body.public,
+                 likes: 0,
+                 dislikes: 0
             }).then(ref => {
                 console.log('Post created with id: ', ref.id)
                 res.status(201).json({
@@ -90,8 +92,7 @@ api.put('/:postId', function (req,res){
         if (user){
             post_id = req.params.postId;
             var postData = {
-                content: req.body.content,
-                image_id: req.body.image_id
+                content: req.body.content
             }
             var oldData = admin.firestore().collection('Posts').doc(post_id).update(postData);
             oldData.then(function (){
@@ -141,6 +142,40 @@ api.delete('/:postId', function (req,res){
         }
     })
     unsubscribe();
+})
+
+api.put('/:postId/likes', function (req,res){
+    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+        if (user){
+            post_id = req.params.postId;
+            data = admin.firestore().collection('Posts').doc(post_id).get().then(function (doc){
+                if (req.body.likes){
+                    likes = doc.get('likes');
+                    likes = parseInt(likes) + 1;
+                    admin.firestore().collection('Posts').doc(post_id).update({likes: likes})
+                }else if (req.body.dislikes){
+                    dislikes = doc.get('dislikes');
+                    dislikes = parseInt(dislikes) + 1;
+                    admin.firestore().collection('Posts').doc(post_id).update({dislikes: dislikes})
+                }
+                res.status(200).json({
+                    status: 200,
+                    message: 'the post has been liked'
+                })
+            }).catch(function (error){
+                res.status(404).json({
+                    status: 404,
+                    message: 'the post could not be found'
+                })
+            })
+        } else{
+            res.json({
+                status: 401,
+                message: 'you need to log in to acces this content'
+            })
+        } 
+    }) 
+    unsubscribe();  
 })
 
 module.exports = api;  
