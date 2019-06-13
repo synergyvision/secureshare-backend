@@ -79,7 +79,8 @@ api.post('/', function (req,res){
                  image_id: image,
                  public: req.body.public,
                  likes: 0,
-                 dislikes: 0
+                 dislikes: 0,
+                 timestamp: Date.now()
             }).then(ref => {
                 console.log('Post created with id: ', ref.id)
                 res.status(201).json({
