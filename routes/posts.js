@@ -14,21 +14,37 @@ api.use(function(req, res, next) {
     next();
   });
 
+var getUserInfo = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        name = snapshot.get('name');
+        return name
+    }).catch(function (error){
+        res.json({
+            status: error.code,
+            message: error.message
+        })
+    })
+}
+
+
 api.get('/', function (req,res){
     var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
         posts = [];
+        var i = 0;
         if (user){
-            admin.firestore().collection('Posts').get().then(function (snapshot){
-                snapshot.forEach( doc => {
+            admin.firestore().collection('Posts').get().then(async (snapshot) => {
+                 for (doc of snapshot.docs){
+                    name = await getUserInfo(doc.get('user_id'));
                     post = {
                         id: doc.id,
-                        data: doc.data()
+                        data: doc.data(),
+                        name: name
                     }
                     posts.push(post);
-                })
+                }
                 res.status(200).json({
                     status: 200,
-                    message: 'Post Retrieved',
+                    message: 'posts retrieved',
                     data: posts
                 })
             }).catch(function (error){
