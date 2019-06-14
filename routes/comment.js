@@ -15,9 +15,10 @@ api.use(function(req, res, next) {
   });
 
 api.get('/', function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         comments =[]
-        if (user){
+        if (decodedToken.uid ){
             admin.firestore().collection('Comments').get().then(function (snapshot){
                 snapshot.forEach(doc => {
                     comment = {
@@ -43,12 +44,12 @@ api.get('/', function (req,res){
             })
         }
     })
-    unsubscribe(); 
 })
 
 api.post('/', function (req, res) {
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             var comment = admin.firestore().collection('Comments');
             var commentData = {
                 content: req.body.content,
@@ -74,13 +75,13 @@ api.post('/', function (req, res) {
             })
         }
     }) 
-    unsubscribe();   
 })
 
 api.put('/:commentId', function (req,res){
     comment_id = req.params.commentId
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             var newCommentData = {
                 content: req.body.content,
                 image_id: req.body.image_id
@@ -104,13 +105,13 @@ api.put('/:commentId', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.delete('/:commentId', function (req,res){
     comment_id =req.params.commentId
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             var comment = admin.firestore().collection('Comments').doc(comment_id).delete();
             res.json({
                 status: 200,
@@ -123,7 +124,6 @@ api.delete('/:commentId', function (req,res){
             }) 
         }
     })
-    unsubscribe();
 })
 
 module.exports = api;

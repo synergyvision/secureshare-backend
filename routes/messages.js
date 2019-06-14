@@ -19,9 +19,10 @@ api.use(function(req, res, next) {
 api.get('/:userid/chat/:chatid', function (req,res){
     uid = req.params.userid;
     chat = req.params.chatid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         messages = [];
-        if (user){
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
                 snapshot.forEach( doc =>{
                     message = {
@@ -49,15 +50,15 @@ api.get('/:userid/chat/:chatid', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post('/:userid/:chatid/messages', function (req,res){
     j = 0
     uid = req.params.userid;
     chat = req.params.chatid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             sender= req.body.id_sender
             content= req.body.message
             date_sent= Date.now()
@@ -112,15 +113,15 @@ api.post('/:userid/:chatid/messages', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 // the following functions are for singular messages, not chats
 
 api.get('/:userid', function (req,res){
     uid = req.params.userid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Messages').get().then(function (snapshot){
                 if (snapshot.empty){
                     res.status(200).json({
@@ -155,13 +156,13 @@ api.get('/:userid', function (req,res){
             })
         }
     })
-    unsubscribe()
 })
 
 api.post('/:userid', function (req,res){
     uid = req.params.userid
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             sender = req.body.username;
             id_sender = req.body.id_sender;
             timestamp = Date.now();
@@ -192,13 +193,13 @@ api.post('/:userid', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.get('/:userid/:messageid', function (req,res){
     uid = req.params.userid
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(function (doc){
                 res.status(200).json({
                     status: 200,
@@ -218,14 +219,14 @@ api.get('/:userid/:messageid', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.put('/:userid/:messageid', function (req,res){
     uid = req.params.userid;
     message = req.params.messageid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             update = admin.firestore().collection('Users').doc(uid).collection('Messages').doc(message).update({
                 status: 'read'
             })
@@ -251,8 +252,9 @@ api.put('/:userid/:messageid', function (req,res){
 
 api.delete('/:userid/:messageid', function (req,res) {
     uid = req.params.userid
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).delete();
             res.status(200).json({
                 status: 200,
@@ -265,7 +267,6 @@ api.delete('/:userid/:messageid', function (req,res) {
             })
         }
     })
-    unsubscribe();
 })
 
 module.exports = api;

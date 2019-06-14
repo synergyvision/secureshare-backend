@@ -28,10 +28,11 @@ var getUserInfo = function (id){
 
 
 api.get('/', function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         posts = [];
         var i = 0;
-        if (user){
+        if (decodedToken.uid){
             admin.firestore().collection('Posts').get().then(async (snapshot) => {
                  for (doc of snapshot.docs){
                     name = await getUserInfo(doc.get('user_id'));
@@ -60,13 +61,12 @@ api.get('/', function (req,res){
             })
         }
     }) 
-    unsubscribe();   
 })
 
 api.post('/', function (req,res){
-   
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             if (req.body.image_id){
                 image = req.body.image_id
             }else{
@@ -100,13 +100,13 @@ api.post('/', function (req,res){
             })
         }
     })
-    unsubscribe();
 
 })
 
 api.put('/:postId', function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             post_id = req.params.postId;
             var postData = {
                 content: req.body.content
@@ -130,14 +130,14 @@ api.put('/:postId', function (req,res){
             })
         } 
     }) 
-    unsubscribe();  
 
 })
 
 api.delete('/:postId', function (req,res){
     post_id = req.params.postId
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             var deleteDoc = admin.firestore().collection('Posts').doc(post_id).delete();
             deleteDoc.then(function (){
                 res.json({
@@ -158,12 +158,12 @@ api.delete('/:postId', function (req,res){
             }) 
         }
     })
-    unsubscribe();
 })
 
 api.put('/:postId/likes', function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
             post_id = req.params.postId;
             data = admin.firestore().collection('Posts').doc(post_id).get().then(function (doc){
                 if (req.body.likes){
@@ -192,7 +192,6 @@ api.put('/:postId/likes', function (req,res){
             })
         } 
     }) 
-    unsubscribe();  
 })
 
 module.exports = api;  

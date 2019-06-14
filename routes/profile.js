@@ -28,10 +28,11 @@ api.use(function(req, res, next) {
   });
  
  api.get("/:userid", function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var db = admin.firestore();
-            var uid = req.params.userid;
             db.collection('Users').doc(uid).get().then( function (snapshot){
                 console.log(snapshot.data())
                 var user = snapshot.data();
@@ -51,15 +52,13 @@ api.use(function(req, res, next) {
                 message: 'You need to be logged in to access content'
             })
         }
-    }) 
-    unsubscribe();       
+    })    
 })
 
 api.put("/:userid" , function (req,res){
     var db = admin.firestore();
     var auth = firebase.auth();
     var uid = req.params.userid;
-    console.log(req.body);
     updateData = {
         email: req.body.email,
         lastname: req.body.lastname,
@@ -91,7 +90,6 @@ api.put("/:userid" , function (req,res){
                 })
             }           
         })
-        unsubscribe();
     }else{
         res.json({
             status: 200,
@@ -145,9 +143,10 @@ var storeKeys =  function (uid,pubkey,privkey,keyName){
 
 // store the keys received from client
 api.post("/:userid/storeKeys", function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
-            var uid = req.params.userid;
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var pubkey = req.body.pubkey;
             var privkey = req.body.privkey;
             var keyName= req.body.keyname;
@@ -163,7 +162,6 @@ api.post("/:userid/storeKeys", function (req,res){
             })
         }
     })
-    unsubscribe();
 
 })
 
@@ -190,9 +188,10 @@ var getKeys = function (uid){
 }
 
 api.get("/:userid/getKeys" , function (req,res){
-    firebase.auth().onAuthStateChanged(function (user){
-        if (user){
-            var uid = req.params.userid;
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var keys = getKeys(uid);
             keys.then((keys) => {
                 res.status(200).json({
@@ -214,10 +213,11 @@ api.get("/:userid/getKeys" , function (req,res){
 })
 
 api.delete("/:userid/deleteKey", function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var keyname = req.body.name;
-            var uid = req.params.userid;
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
                 querySnapshot.forEach(function (doc){
                     docId = doc.id;
@@ -240,14 +240,15 @@ api.delete("/:userid/deleteKey", function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post("/:userid/recoverKey", function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var keyname = req.body.name;
-            var uid = req.params.userid;
+            
             console.log(req.body);
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
                 querySnapshot.forEach(function (doc){
@@ -285,13 +286,13 @@ api.post("/:userid/recoverKey", function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.put("/:userid/updateDefault", function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
-            var uid = req.params.userid;
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var name = req.body.name;
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('default', '==', true).get().then(function (snapshot){
                 if (!snapshot.empty){    
@@ -341,14 +342,14 @@ api.put("/:userid/updateDefault", function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post("/:userid/getPublicKey", function (req,res){
     uid = req.param.userid;
     id = req.body.id;
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
                 querySnapshot.forEach( function (doc){
                     publicKey = doc.get('PubKey');
@@ -372,15 +373,15 @@ api.post("/:userid/getPublicKey", function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post("/:userid/getMultipleKeys", function (req,res){
     uid = req.param.userid;
     ids = JSON.parse(req.body.id);
     keys = [];
-    var unsubscribe = firebase.auth().onAuthStateChanged( async (user) => {
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(async (decodedToken) => {
+        if (decodedToken.uid == uid){
             for (i = 0; i < ids.length; i++){
                 await admin.firestore().collection('Users').doc(ids[i]).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
                     querySnapshot.forEach( function (doc){
@@ -408,14 +409,14 @@ api.post("/:userid/getMultipleKeys", function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post("/:userid/encrypt", function (req,res) {
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var uid = req.params.userid
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var message = req.body.message
-            var uid = req.params.userid
             var pubKeys = getPublicKeys(uid);
             pubKeys.then((pubKeys) => {
                 console.log(pubKeys);
@@ -447,7 +448,6 @@ api.post("/:userid/encrypt", function (req,res) {
             })
         }    
     })
-    unsubscribe();
 })   
 
 var readMessage = async (message) => {
@@ -461,12 +461,13 @@ var decryptPrivKey = async (key,pass) => {
     return priv
 }
 
+// not in use
 api.post("/:userid/decrypt", function (req,res) {
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var message = req.body.message;
-            console.log(message);
-            var uid = req.params.userid;
             var privKey = getPrivKeys(uid);
             privKey.then( (privKey) => {
                 console.log("got key")
@@ -509,19 +510,18 @@ api.post("/:userid/decrypt", function (req,res) {
                 message: 'You need to be logged in to access content'
             })
         } 
-    })
-    unsubscribe();       
+    })    
 })
 
 
 api.get('/:userid/post', function (req,res){
     var uid = req.params.userid;
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Posts').where('user_id','==',uid).get().then(function (snapshot){
                 if (snapshot){
                     var posts = snapshot.data();
-                    console.log(posts)
                     res.status(200).json({
                         status: 200,
                         message: 'Users Post retrieved succesfully',
@@ -546,7 +546,6 @@ api.get('/:userid/post', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 var contactInfo = function (id) {
@@ -566,8 +565,9 @@ var contactInfo = function (id) {
 
 api.get('/:userid/contacts', function (req,res) {
     var uid = req.params.userid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             contacts = []
             var i = 0
             admin.firestore().collection('Users').doc(uid).collection('contacts').get().then((snapshot) => {
@@ -606,7 +606,6 @@ api.get('/:userid/contacts', function (req,res) {
             })
         }
     })
-    unsubscribe();
 })
 
 var getChatInfo = function (id) {
@@ -633,9 +632,9 @@ var getChats = async (uid) => {
 
 api.get('/:userid/chats', function (req,res) {
     uid = req.params.userid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
-            var uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var chats = getChats(uid);
             chats.then((chats) =>{
                 res.status(200).json({
@@ -655,14 +654,14 @@ api.get('/:userid/chats', function (req,res) {
             })
         }
     })
-    unsubscribe();
 })
 
 api.delete('/:userid/chats/:chatid', function (req,res){
     uid = req.params.userid;
     chatId = req.params.chatid;
-    var unsubscribe =  firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
            messages =  admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').get();
            messages.then(function(snapshot){
                 snapshot.forEach( doc =>{
@@ -686,7 +685,6 @@ api.delete('/:userid/chats/:chatid', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 

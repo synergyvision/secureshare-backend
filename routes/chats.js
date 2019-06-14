@@ -15,10 +15,11 @@ api.use(function(req, res, next) {
   });
 
 api.get('/:userid', function (req, res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         chats = []
         uid = req.params.userid
-        if (user){
+        if (decodedToken.uid == uid){
             admin.firestore().collection('Chats').get().then(function (snapshot){
                 snapshot.forEach( doc => {
                     chat = {
@@ -40,16 +41,16 @@ api.get('/:userid', function (req, res){
         }else{
             res.status(401).json({
                 staus: 401,
-                message: 'You need to be logged in to access this content'
+                message: 'You need to be logged in to access this content or token mismatch'
             })
         }
     })
-    unsubscribe();
 })
 
 api.post('/:userid/checkChat', function (req,res){
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             uid = req.params.userid;
             title = req.body.title
             admin.firestore().collection('Chats').where('title','==',title).get().then(function (query){
@@ -73,19 +74,18 @@ api.post('/:userid/checkChat', function (req,res){
                 })
             })
         } else{
-            unsubscribe();
             res.status(401).json({
                 status: 401,
-                message: 'You need to be logged in to acces content'
+                message: 'No credentials or token mismatch'
             })
         }    
     })
-    unsubscribe();    
 })
 
 api.post('/:userid', function (req, res){
-    var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             uid = req.params.userid;
             title = req.body.title
             sent = Date.now()
@@ -110,19 +110,18 @@ api.post('/:userid', function (req, res){
                 })
             })
         } else{
-            unsubscribe();
             res.status(401).json({
                 status: 401,
                 message: 'You need to be logged in to acces content'
             })
         }    
-    })
-    unsubscribe();    
+    })   
 })
 
 api.delete('/:userid/:chatid', function (req, res){
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             uid = req.params.userid;
             id = req.params.chatid;
             var chat = admin.firestore().collection('Chats');
@@ -138,22 +137,21 @@ api.delete('/:userid/:chatid', function (req, res){
                     message: error.message
                 })
             })
-        }else{
-            unsubscribe();       
+        }else{  
             res.status(401).json({
                 status: 401,
                 message: 'You need to be logged in to acces content'
             })
         }
     })
-    unsubscribe();
 })
 
 api.post('/:userid/:chatid/participants', function (req,res){
     uid = req.params.userid;
     id = req.params.chatid;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             id_member = req.body.id_member;
             key = req.body.key;
             update = admin.firestore().collection('Chats').doc(id).update(
@@ -171,22 +169,21 @@ api.post('/:userid/:chatid/participants', function (req,res){
                 })
             })
         }else{
-            unsubscribe();
             res.status(401).json({
                 status: 402,
                 message: 'You need to be logged in to access content'
             })
         }
     })
-    unsubscribe();
 })
 
 api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
     uid = req.params.userid
     id_chat = req.params.chatid;
     participant = req.params.participantsid
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             var deletes = admin.firestore().collection('Chats').doc(id_chat).update({
                 ['members.'+participant]: null 
             })
@@ -208,15 +205,15 @@ api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
             })
         }
     })
-    unsubscribe();
 })
 
 api.post('/:userid/:chatid/changeKey', function (req,res){
     uid = req.params.userid;
     chatId = req.params.chatid;
     key = req.body.key;
-    var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-        if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
             update = admin.firestore().collection('Chats').doc(chatId).update({['members.'+uid]: key});
             update.then(function (){
                 res.status(200).json({
@@ -236,7 +233,6 @@ api.post('/:userid/:chatid/changeKey', function (req,res){
             })
         }
     })
-    unsubscribe();
 
 
 });

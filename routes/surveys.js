@@ -15,8 +15,9 @@ api.use(function(req, res, next) {
   });
 
 api.get('/', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-      if (user){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+      if (decodedToken.uid){
         surveys = [];
         admin.firestore().collection('Surveys').get().then( function (snapshot){
             if (snapshot){
@@ -49,12 +50,12 @@ api.get('/', function (req,res){
         })
       }
   })
-  unsubscribe();
 })
 
 api.post('/', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       var newSurveyData = {
         title: req.body.title,
         uid: req.body.id_user
@@ -77,12 +78,12 @@ api.post('/', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.put('/:surveyid' , function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       var newSurveyData = {
         title: req.body.title
       }
@@ -105,12 +106,12 @@ api.put('/:surveyid' , function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.delete('/:surveyid', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       deletes = admin.firestore().collection('Surveys').doc(survey);
       deletes.collection('Questions').get().then( function (snapshot){
@@ -147,12 +148,12 @@ api.delete('/:surveyid', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.post('/:surveyid/question', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+  admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
         survey = req.params.surveyid
         var newQuestion = {
           content: req.body.content
@@ -177,12 +178,12 @@ api.post('/:surveyid/question', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.get('/:surveyid/question/', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
         surveys = req.params.surveyid
         questions =[];
         admin.firestore().collection('Surveys').doc(surveys).collection('Questions').get().then(function (snapshot){
@@ -217,12 +218,12 @@ api.get('/:surveyid/question/', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.put('/:surveyid/question/:questionid', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       var newQuestionData = {
@@ -246,12 +247,12 @@ api.put('/:surveyid/question/:questionid', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.delete('/:surveyid/question/:questionid', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       var deletes = admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question)
@@ -281,14 +282,14 @@ api.delete('/:surveyid/question/:questionid', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 
 
 api.get('/:surveyid/question/:questionid/answer', function (req, res){
-  var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       answers = []
@@ -324,12 +325,12 @@ api.get('/:surveyid/question/:questionid/answer', function (req, res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.post('/:surveyid/question/:questionid/answer', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+  admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       newAnswer = {
         content: req.body.content,
         votes: 0
@@ -355,12 +356,12 @@ api.post('/:surveyid/question/:questionid/answer', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.put('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       answer = req.params.answerid
@@ -385,12 +386,12 @@ api.put('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
       })
     }
   })
-  unsubscribe();
 })
 
 api.put('/:surveyid/question/:questionid/answer/:answerid/vote', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       answer = req.params.answerid
@@ -425,12 +426,12 @@ api.put('/:surveyid/question/:questionid/answer/:answerid/vote', function (req,r
       })
     }
   })
-  unsubscribe();
 })
 
 api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
-  var unsubscribe = firebase.auth().onAuthStateChanged(function (user){
-    if (user){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
       survey = req.params.surveyid
       question = req.params.questionid
       answer = req.params.answerid
@@ -446,7 +447,6 @@ api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res
       })
     }
   })
-  unsubscribe();
 })
 
 module.exports  = api;

@@ -20,11 +20,18 @@ api.post("/", function (req, res){
     var db = admin.database();
     var au = fire.auth();    
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
-            return res.json({
-                status: 200,
-                message: 'User has logged in',
-                uid: au.currentUser.uid
-            })
+            au.currentUser.getIdToken(true).then(function(idToken) {
+                res.header('Authorization',idToken).status(200).json({
+                    message: 'User has logged in',
+                    uid: au.currentUser.uid
+                })
+              }).catch(function(error) {
+                    console.log(error);
+                    res.status(400).json({
+                        status: error.code,
+                        message: error.message 
+                    })
+              });
        }).
        catch(function(error) {
             var code = error.code;
@@ -58,20 +65,19 @@ api.post("/sendEmail", function (req , res){
 
 api.get("/activeUser", function (req,res) {
     var au = fire.auth();
-    var unsubscribe = au.onAuthStateChanged(function(user) {
-        if (user) {
-          res.json({
-              user: user.email,
-              uid: user.uid
-          })
-        } else {
-          res.json({
-              message: 'no user is logged in'
-          })
-        }
-      });
-      unsubscribe();  
-
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded)
+        .then(function(decodedToken) {
+            var uid = decodedToken.uid;
+                res.json({
+                    status: 200,
+                    message: uid
+                })
+        }).catch(function(error) {
+            res.json({
+                message: 'no user is logged in'
+            })
+        });
 })
 
 
