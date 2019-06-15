@@ -21,9 +21,10 @@ api.post("/", function (req, res){
     var au = fire.auth();    
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
             au.currentUser.getIdToken(true).then(function(idToken) {
-                res.header('Authorization',idToken).status(200).json({
+                res.status(200).json({
                     message: 'User has logged in',
-                    uid: au.currentUser.uid
+                    uid: au.currentUser.uid,
+                    token: idToken
                 })
               }).catch(function(error) {
                     console.log(error);
