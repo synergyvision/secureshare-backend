@@ -69,15 +69,18 @@ api.get('/:userid/requests', function (req, res){
                     message: error.message
                 })
             })
-        }else {
-            res.status(401).json({
-                status: 'unauthorized',
-                message: 'you need to log in to access content'
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
-
         }
-    })
-
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid/requests', function (req, res){
@@ -104,14 +107,17 @@ api.post('/:userid/requests', function (req, res){
                 })
             })
         }else{
-            res.status(401).json({
-                status: 'unauthorized',
-                message: 'you need to log in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
-
         }
-
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.put('/:userid/requests/:requestid', function (req,res){
@@ -176,12 +182,17 @@ api.put('/:userid/requests/:requestid', function (req,res){
                 })
             }
         }else{
-            res.status(401).json({
-                status: 'unauthorized',
-                message: 'you need to log in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.delete('/:userid', function (req,res){
@@ -220,10 +231,15 @@ api.delete('/:userid', function (req,res){
         }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to access this content'
-            }) 
+                messgae: 'token mismatch'
+            })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })    
 
 var contact = function (user_id,id){
@@ -272,10 +288,15 @@ api.get('/:userid/users', function (req,res){
         }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to access this content'
-            }) 
+                messgae: 'token mismatch'
+            })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 
 })
 

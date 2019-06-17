@@ -44,12 +44,17 @@ api.get('/:userid/chat/:chatid', function (req,res){
             }) 
 
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid/:chatid/messages', function (req,res){
@@ -107,12 +112,17 @@ api.post('/:userid/:chatid/messages', function (req,res){
                     })
             }    
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 // the following functions are for singular messages, not chats
@@ -150,12 +160,17 @@ api.get('/:userid', function (req,res){
                 })
             })    
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid', function (req,res){
@@ -187,12 +202,17 @@ api.post('/:userid', function (req,res){
                 })
             })
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.get('/:userid/:messageid', function (req,res){
@@ -213,12 +233,17 @@ api.get('/:userid/:messageid', function (req,res){
                 })
             })
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.put('/:userid/:messageid', function (req,res){
@@ -242,12 +267,17 @@ api.put('/:userid/:messageid', function (req,res){
                 })
             })
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.delete('/:userid/:messageid', function (req,res) {
@@ -261,12 +291,17 @@ api.delete('/:userid/:messageid', function (req,res) {
                 message: 'The message was deleted'
             })
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 module.exports = api;

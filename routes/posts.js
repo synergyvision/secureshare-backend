@@ -31,7 +31,6 @@ api.get('/', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         posts = [];
-        var i = 0;
         if (decodedToken.uid){
             admin.firestore().collection('Posts').get().then(async (snapshot) => {
                  for (doc of snapshot.docs){
@@ -46,7 +45,7 @@ api.get('/', function (req,res){
                 res.status(200).json({
                     status: 200,
                     message: 'posts retrieved',
-                    data: posts
+                    data: post
                 })
             }).catch(function (error){
                 res.status(400).json({
@@ -57,9 +56,50 @@ api.get('/', function (req,res){
         }else{
             res.json({
                 status: 401,
-                messgae: 'You need to be logged in to access this content'
+                messgae: 'token mismatch'
             })
         }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
+api.get('/:userId/:postId', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        var uid = req.params.userId;
+        var post = req.params.postId;
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Posts').doc(post).get().then(function (doc){
+                post = {
+                    id: doc.id,
+                    data: doc.data()
+                }
+                res.status(200).json({
+                    status: 200,
+                    message: 'post retrieved',
+                    data: post
+                })
+            }).catch(function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })    
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
     }) 
 })
 
@@ -96,10 +136,15 @@ api.post('/', function (req,res){
         }else{
             res.json({
                 status: 401,
-                messgae: 'You need to be logged in to access this content'
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 
 })
 
@@ -123,12 +168,17 @@ api.put('/:postId', function (req,res){
                     message: error.message
                 })
             })
-        } else{
+        }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to acces this content'
+                messgae: 'token mismatch'
             })
-        } 
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
     }) 
 
 })
@@ -151,13 +201,18 @@ api.delete('/:postId', function (req,res){
                 })
             })
             
-        } else{
+        }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to acces this content'
-            }) 
+                messgae: 'token mismatch'
+            })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.put('/:postId/likes', function (req,res){
@@ -185,12 +240,17 @@ api.put('/:postId/likes', function (req,res){
                     message: 'the post could not be found'
                 })
             })
-        } else{
+        }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to acces this content'
+                messgae: 'token mismatch'
             })
-        } 
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
     }) 
 })
 

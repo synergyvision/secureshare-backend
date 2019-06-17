@@ -40,10 +40,15 @@ api.get('/', function (req,res){
         }else{
             res.json({
                 status: 401,
-                messgae: 'You need to be logged in to access this content'
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/', function (req, res) {
@@ -71,9 +76,14 @@ api.post('/', function (req, res) {
         }else{
             res.json({
                 status: 401,
-                messgae: 'You need to be logged in to access this content'
+                messgae: 'token mismatch'
             })
         }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
     }) 
 })
 
@@ -101,10 +111,15 @@ api.put('/:commentId', function (req,res){
         }else{
             res.json({
                 status: 401,
-                message: 'You need to be logged in to access content'
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.delete('/:commentId', function (req,res){
@@ -117,13 +132,18 @@ api.delete('/:commentId', function (req,res){
                 status: 200,
                 message: 'The comment has been deleted'
             })
-        } else{
+        }else{
             res.json({
                 status: 401,
-                message: 'you need to log in to access this content'
-            }) 
+                messgae: 'token mismatch'
+            })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 module.exports = api;

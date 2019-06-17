@@ -45,11 +45,17 @@ api.get('/', function (req,res){
         })
 
       }else{
-        res.status(401).json({
-          message: 'You need to be logged in to access content'
+        res.json({
+            status: 401,
+            messgae: 'token mismatch'
         })
-      }
-  })
+    }
+  }).catch(function (error){
+      res.status(401).json({
+          status: error.code,
+          message: error.message
+      })
+  }) 
 })
 
 api.post('/', function (req,res){
@@ -73,81 +79,97 @@ api.post('/', function (req,res){
           })
       })
     }else{
-      res.status(401).json({
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.put('/:surveyid' , function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-    if (decodedToken.uid){
-      var newSurveyData = {
-        title: req.body.title
-      }
-      survey = req.params.surveyid
-      admin.firestore().collection('Surveys').doc(survey).update(newSurveyData).then(function (){
-        res.status(200).json({
-          status: 200,
-          message: 'The survey has been updated'
+      if (decodedToken.uid){
+        var newSurveyData = {
+          title: req.body.title
+        }
+        survey = req.params.surveyid
+        admin.firestore().collection('Surveys').doc(survey).update(newSurveyData).then(function (){
+          res.status(200).json({
+            status: 200,
+            message: 'The survey has been updated'
+          })
+        }).catch(function (error){
+          res.status(400).json({
+            status: error.code,
+            message: error.message
+          })
         })
-      }).catch(function (error){
-        res.status(400).json({
-          status: error.code,
-          message: error.message
+      }else{
+        res.json({
+            status: 401,
+            messgae: 'token mismatch'
         })
-      })
-    }else{
-      res.status(401).json({
-        status: 401,
-        message: 'You need to be logged in to access content'
-      })
     }
-  })
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.delete('/:surveyid', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-    if (decodedToken.uid){
-      survey = req.params.surveyid
-      deletes = admin.firestore().collection('Surveys').doc(survey);
-      deletes.collection('Questions').get().then( function (snapshot){
-        snapshot.forEach( doc => {
-          deletes.collection('Questions').doc(doc.id).collection('Answers').get().then(function (snap){
-            snap.forEach( docs => {
-              deletes.collection('Questions').doc(doc.id).collection('Answers').doc(docs.id).delete();
-              console.log('Deleted answer ' + docs.id)
+      if (decodedToken.uid){
+        survey = req.params.surveyid
+        deletes = admin.firestore().collection('Surveys').doc(survey);
+        deletes.collection('Questions').get().then( function (snapshot){
+          snapshot.forEach( doc => {
+            deletes.collection('Questions').doc(doc.id).collection('Answers').get().then(function (snap){
+              snap.forEach( docs => {
+                deletes.collection('Questions').doc(doc.id).collection('Answers').doc(docs.id).delete();
+                console.log('Deleted answer ' + docs.id)
+              })
+              deletes.collection('Questions').doc(doc.id).delete();
+              console.log('Deleted question ' + doc.id)
+            }).catch(function (error){
+                res.status(400).json({
+                  status: error.code,
+                  message: error.message
+                })
             })
-            deletes.collection('Questions').doc(doc.id).delete();
-            console.log('Deleted question ' + doc.id)
-          }).catch(function (error){
-              res.status(400).json({
-                status: error.code,
-                message: error.message
-               })
+          })
+          deletes.delete();
+          res.status(200).json({
+            status: 200,
+            message: 'Survey deleted'
+          })
+        }).catch(function (error){
+          res.status(400).json({
+              status: error.code,
+              message: error.message
           })
         })
-        deletes.delete();
-        res.status(200).json({
-          status: 200,
-          message: 'Survey deleted'
+      }else{
+        res.json({
+            status: 401,
+            messgae: 'token mismatch'
         })
-      }).catch(function (error){
-        res.status(400).json({
-            status: error.code,
-            message: error.message
-        })
-      })
-    }else {
-      res.status(201).json({
-        status: 401,
-        message: 'You need to log in to access content'
-      })
     }
-  })
+  }).catch(function (error){
+      res.status(401).json({
+          status: error.code,
+          message: error.message
+      })
+  }) 
 })
 
 api.post('/:surveyid/question', function (req,res){
@@ -172,12 +194,17 @@ api.post('/:surveyid/question', function (req,res){
             })
         })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.get('/:surveyid/question/', function (req,res){
@@ -212,12 +239,17 @@ api.get('/:surveyid/question/', function (req,res){
             })
         })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.put('/:surveyid/question/:questionid', function (req,res){
@@ -241,12 +273,17 @@ api.put('/:surveyid/question/:questionid', function (req,res){
         })
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.delete('/:surveyid/question/:questionid', function (req,res){
@@ -276,12 +313,17 @@ api.delete('/:surveyid/question/:questionid', function (req,res){
           })
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 
@@ -319,12 +361,17 @@ api.get('/:surveyid/question/:questionid/answer', function (req, res){
           })
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.post('/:surveyid/question/:questionid/answer', function (req,res){
@@ -350,12 +397,17 @@ api.post('/:surveyid/question/:questionid/answer', function (req,res){
         })
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.put('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
@@ -380,12 +432,17 @@ api.put('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
           })
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.put('/:surveyid/question/:questionid/answer/:answerid/vote', function (req,res){
@@ -420,12 +477,17 @@ api.put('/:surveyid/question/:questionid/answer/:answerid/vote', function (req,r
         })
       })  
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res){
@@ -441,12 +503,17 @@ api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res
         message: 'the answer has been removed from the survey'
       })
     }else{
-      res.status(401).json({
-        status:401,
-        message: 'You need to be logged in to access content'
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
       })
-    }
-  })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
 })
 
 module.exports  = api;

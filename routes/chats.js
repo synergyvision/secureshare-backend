@@ -39,12 +39,17 @@ api.get('/:userid', function (req, res){
                 })
             })   
         }else{
-            res.status(401).json({
-                staus: 401,
-                message: 'You need to be logged in to access this content or token mismatch'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid/checkChat', function (req,res){
@@ -74,12 +79,17 @@ api.post('/:userid/checkChat', function (req,res){
                 })
             })
         } else{
-            res.status(401).json({
+            res.json({
                 status: 401,
-                message: 'No credentials or token mismatch'
+                messgae: 'token mismatch'
             })
-        }    
-    })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid', function (req, res){
@@ -110,12 +120,17 @@ api.post('/:userid', function (req, res){
                 })
             })
         } else{
-            res.status(401).json({
+            res.json({
                 status: 401,
-                message: 'You need to be logged in to acces content'
+                messgae: 'token mismatch'
             })
-        }    
-    })   
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.delete('/:userid/:chatid', function (req, res){
@@ -137,13 +152,18 @@ api.delete('/:userid/:chatid', function (req, res){
                     message: error.message
                 })
             })
-        }else{  
-            res.status(401).json({
+        }else{
+            res.json({
                 status: 401,
-                message: 'You need to be logged in to acces content'
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid/:chatid/participants', function (req,res){
@@ -169,12 +189,17 @@ api.post('/:userid/:chatid/participants', function (req,res){
                 })
             })
         }else{
-            res.status(401).json({
-                status: 402,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
@@ -198,13 +223,18 @@ api.delete('/:userid/:chatid/participants/:participantsid', function (req,res){
                     message: error.message
                 })
             })
-        }else {
-            res.status(401).json({
-                status: 402,
-                message: 'You need to be logged in to access content'
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 })
 
 api.post('/:userid/:chatid/changeKey', function (req,res){
@@ -227,12 +257,17 @@ api.post('/:userid/:chatid/changeKey', function (req,res){
                 })
             })
         }else{
-            res.status(401).json({
-                status: 402,
-                message: 'You need to be logged in to access content'
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
             })
         }
-    })
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
 
 
 });
