@@ -17,7 +17,8 @@ api.use(function(req, res, next) {
 var getUserInfo = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         name = snapshot.get('name');
-        return name
+        lastname = snapshot.get('lastname')
+        return name + ' ' + lastname;
     }).catch(function (error){
         res.json({
             status: error.code,
@@ -45,7 +46,7 @@ api.get('/', function (req,res){
                 res.status(200).json({
                     status: 200,
                     message: 'posts retrieved',
-                    data: post
+                    data: posts
                 })
             }).catch(function (error){
                 res.status(400).json({
@@ -73,10 +74,12 @@ api.get('/:userId/:postId', function (req,res){
         var uid = req.params.userId;
         var post = req.params.postId;
         if (decodedToken.uid == uid){
-            admin.firestore().collection('Posts').doc(post).get().then(function (doc){
+            admin.firestore().collection('Posts').doc(post).get().then(async (doc) =>{
+                name = await getUserInfo(doc.get('user_id'));
                 post = {
                     id: doc.id,
-                    data: doc.data()
+                    data: doc.data(),
+                    name: name
                 }
                 res.status(200).json({
                     status: 200,
