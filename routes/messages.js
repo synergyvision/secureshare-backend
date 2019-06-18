@@ -366,4 +366,95 @@ api.get('/:userid/mail/trays',function (req,res){
 
 })
 
+api.get('/:userid/mail/publish',function (req,res){
+    uid = req.params.userid
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).collection('Messages').where('tray', '==', 'published').get().then(function (snapshot){
+                messages = []
+                if (snapshot.empty){
+                    res.status(404).json({
+                        message: 'no messages found'
+                    })
+                }
+                snapshot.forEach(function (doc){
+                    message = {
+                        id: doc.id,
+                        data: doc.data()
+                    }
+                    messages.push(message);
+                    res.status(200).json({
+                        status: 200,
+                        message: 'Published messages retrived',
+                        data: messages
+                    })
+                })    
+                }).catch(function (error){
+                    res.status(401).json({
+                        status: error.code,
+                        message: error.message
+                    })
+                })
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    })     
+
+})
+
+api.post('/:userid/:messageid/publish', function (req,res){
+    uid = req.params.userid
+    messageId = req.params.messageid
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
+            sender = req.body.sender;
+            id_sender = req.body.id_sender;
+            timestamp = Date.now();
+            content = req.body.content;
+            var message = {
+                sender: sender,
+                id_sender: id_sender,
+                timestamp: timestamp,
+                content: content,
+                tray: 'published'
+            }
+            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).set(message).then( function (){
+                res.status(201).json({
+                    status: 200,
+                    message: 'Message has been published'
+                })
+            }).catch( function (error){
+                res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
+
+
+
+
 module.exports = api;
