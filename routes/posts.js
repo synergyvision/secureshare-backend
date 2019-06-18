@@ -223,15 +223,23 @@ api.put('/:postId/likes', function (req,res){
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid){
             post_id = req.params.postId;
+            user_id = req.body.likedBy;
+            console.log(user_id)
             data = admin.firestore().collection('Posts').doc(post_id).get().then(function (doc){
                 if (req.body.likes){
                     likes = doc.get('likes');
                     likes = parseInt(likes) + 1;
-                    admin.firestore().collection('Posts').doc(post_id).update({likes: likes})
+                    admin.firestore().collection('Posts').doc(post_id).update(
+                        {likes: likes,
+                        ['reactions.'+user_id]: 'liked'}
+                    )
                 }else if (req.body.dislikes){
                     dislikes = doc.get('dislikes');
                     dislikes = parseInt(dislikes) + 1;
-                    admin.firestore().collection('Posts').doc(post_id).update({dislikes: dislikes})
+                    admin.firestore().collection('Posts').doc(post_id).update(
+                        {dislikes: dislikes,
+                        ['reactions.'+user_id]: 'disliked'}
+                    )
                 }
                 res.status(200).json({
                     status: 200,
