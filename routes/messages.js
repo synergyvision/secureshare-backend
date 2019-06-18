@@ -183,17 +183,33 @@ api.post('/:userid', function (req,res){
             timestamp = Date.now();
             content = req.body.content;
             recipient = req.body.recipient;
+            publish = req.body.publish;
             var message = {
                 sender: sender,
                 id_sender: id_sender,
                 timestamp: timestamp,
                 content: content,
-                status: 'unread'
+                status: 'unread',
+                tray: 'inbox',
+                publish: publish
             }
             admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( function (){
-                res.status(201).json({
-                    status: 200,
-                    message: 'Message has been sent'
+                admin.firestore().collection('Users').doc(uid).collection('Messages').add({
+                    id_sender: id_sender,
+                    timestamp: timestamp,
+                    content: content,
+                    tray: 'outbox',
+                    publish: publish
+                }).then(function (){
+                    res.status(201).json({
+                        status: 200,
+                        message: 'Message has been sent'
+                    })
+                }).catch(function (error){
+                    res.status(400).json({
+                        status: error.code,
+                        message: error.message
+                    })
                 })
             }).catch( function (error){
                 res.status(400).json({
