@@ -388,7 +388,7 @@ api.put("/:userid/updateDefault", function (req,res){
 })
 
 api.post("/:userid/getPublicKey", function (req,res){
-    uid = req.param.userid;
+    uid = req.params.userid;
     id = req.body.id;
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
@@ -425,7 +425,7 @@ api.post("/:userid/getPublicKey", function (req,res){
 })
 
 api.post("/:userid/getMultipleKeys", function (req,res){
-    uid = req.param.userid;
+    uid = req.params.userid;
     ids = JSON.parse(req.body.id);
     keys = [];
     var encoded = req.headers.authorization.split(' ')[1]
