@@ -377,51 +377,6 @@ api.get('/:userid/mail/:tray',function (req,res){
 
 })
 
-api.get('/:userid/mail/publish',function (req,res){
-    uid = req.params.userid
-    var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-        if (decodedToken.uid == uid){
-            admin.firestore().collection('Users').doc(uid).collection('Messages').where('tray', '==', 'published').get().then(function (snapshot){
-                messages = []
-                if (snapshot.empty){
-                    res.status(404).json({
-                        message: 'no messages found'
-                    })
-                }
-                snapshot.forEach(function (doc){
-                    message = {
-                        id: doc.id,
-                        data: doc.data()
-                    }
-                    messages.push(message);
-                    res.status(200).json({
-                        status: 200,
-                        message: 'Published messages retrived',
-                        data: messages
-                    })
-                })    
-                }).catch(function (error){
-                    res.status(401).json({
-                        status: error.code,
-                        message: error.message
-                    })
-                })
-        }else{
-            res.json({
-                status: 401,
-                messgae: 'token mismatch'
-            })
-        }
-    }).catch(function (error){
-        res.status(401).json({
-            status: error.code,
-            message: error.message
-        })
-    })     
-
-})
-
 api.post('/:userid/:messageid/publish', function (req,res){
     uid = req.params.userid
     messageId = req.params.messageid
