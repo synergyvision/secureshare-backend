@@ -350,12 +350,12 @@ api.get('/:userid/mail/:tray',function (req,res){
                         data: doc.data()
                     }
                     messages.push(message);
-                    res.status(200).json({
-                        status: 200,
-                        message: 'All messages have been retrieved',
-                        data: messages
-                    })
-                })    
+                })  
+                res.status(200).json({
+                    status: 200,
+                    message: 'All messages have been retrieved',
+                    data: messages
+                })  
                 }).catch(function (error){
                     res.status(401).json({
                         status: error.code,
