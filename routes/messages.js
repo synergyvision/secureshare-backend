@@ -320,12 +320,13 @@ api.delete('/:userid/:messageid', function (req,res) {
     }) 
 })
 
-api.get('/:userid/mail/trays',function (req,res){
+api.get('/:userid/mail/:tray',function (req,res){
     uid = req.params.userid
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid == uid){
-            tray = req.body.tray;
+            tray = req.params.tray;
+            console.log(tray);
             admin.firestore().collection('Users').doc(uid).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
                 messages = []
                 if (snapshot.empty){
