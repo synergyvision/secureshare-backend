@@ -174,6 +174,7 @@ api.get('/:userid', function (req,res){
 })
 
 var getUsername = function (id){
+    console.log('also here')
     return admin.firestore().collection('Users').doc(id).get().then(function (doc){
         return doc.get('username')
     })
@@ -200,8 +201,8 @@ api.post('/:userid', function (req,res){
                 tray: 'inbox',
                 publish: publish
             }
-            admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( function (){
-                recipient_user = getUsername(recipient);
+            admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( async () =>{
+                recipient_user = await getUsername(recipient);
                 admin.firestore().collection('Users').doc(uid).collection('Messages').add({
                     timestamp: timestamp,
                     content: content,
