@@ -173,6 +173,13 @@ api.get('/:userid', function (req,res){
     }) 
 })
 
+var getUsername = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then(function (doc){
+        return doc.get('username')
+    })
+
+}
+
 api.post('/:userid', function (req,res){
     uid = req.params.userid
     var encoded = req.headers.authorization.split(' ')[1]
@@ -194,12 +201,14 @@ api.post('/:userid', function (req,res){
                 publish: publish
             }
             admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( function (){
+                recipient_user = getUsername(recipient);
                 admin.firestore().collection('Users').doc(uid).collection('Messages').add({
-                    id_sender: id_sender,
                     timestamp: timestamp,
                     content: content,
                     tray: 'outbox',
-                    publish: publish
+                    publish: publish,
+                    recipient: recipient,
+                    r_username: recipient_user
                 }).then(function (){
                     res.status(201).json({
                         status: 200,
@@ -234,7 +243,7 @@ api.post('/:userid', function (req,res){
 api.get('/:userid/:messageid', function (req,res){
     uid = req.params.userid
     var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    admin.auth().verifyIdToken(encoded).then(function (decodedToken) {
         if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(function (doc){
                 res.status(200).json({
