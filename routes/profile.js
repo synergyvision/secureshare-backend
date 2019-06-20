@@ -31,7 +31,6 @@ api.use(function(req, res, next) {
     var uid = req.params.userid;
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-        if (decodedToken.uid == uid){
             var db = admin.firestore();
             db.collection('Users').doc(uid).get().then( function (snapshot){
                 console.log(snapshot.data())
@@ -47,12 +46,6 @@ api.use(function(req, res, next) {
                     message: error.message
                 })
             })
-        }else{
-            res.json({
-                status: 401,
-                messgae: 'token mismatch'
-            })
-        }
     }).catch(function (error){
         res.status(401).json({
             status: error.code,
