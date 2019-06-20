@@ -335,9 +335,10 @@ api.get('/:userid/mail/:tray',function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid == uid){
+            user = req.body.user_id;
             tray = req.params.tray;
             console.log(tray);
-            admin.firestore().collection('Users').doc(uid).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
                 messages = []
                 if (snapshot.empty){
                     res.status(404).json({
