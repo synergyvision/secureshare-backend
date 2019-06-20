@@ -392,7 +392,8 @@ api.post('/:userid/:messageid/publish', function (req,res){
                 id_sender: id_sender,
                 timestamp: timestamp,
                 content: content,
-                tray: 'published'
+                tray: 'published',
+                likes: 0
             }
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).set(message).then( function (){
                 res.status(201).json({
@@ -419,7 +420,61 @@ api.post('/:userid/:messageid/publish', function (req,res){
     }) 
 })
 
+api.put('/:userid/:messageid/react', function (req,res){
+    uid = req.params.userid
+    messageId = req.params.messageid
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).get().then(function (doc){
+                tray = doc.get('tray');
+                if (tray == 'published' ){
+                    if (doc.get('reactions.'+uid)){
+                        likes = doc.get('likes');
+                        likes = parseInt(likes) - 1;
+                        admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).update(
+                            {
+                                likes: likes,
+                                ['reactions.'+uid]: admin.firestore.FieldValue.delete()
+                            })
+                    }else{
+                        likes = doc.get('likes');
+                        likes = parseInt(likes) + 1;
+                        admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).update(
+                            {
+                                likes: likes,
+                                ['reactions.'+uid]: true
+                            });
+                    }
+                    res.status(200).json({
+                        status: 200,
+                        message: 'message liked/removed like'
+                    })
+                }else{
+                    res.status(401).json({
+                        message: 'this message has not been published'
+                    })
+                }
+            }).catch(function (error){
+                res.status(401).json({
+                    status: error.code,
+                    message: error.message
+                })
 
+            })
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    })          
+})
 
 
 
