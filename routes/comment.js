@@ -59,8 +59,7 @@ api.post('/', function (req, res) {
             var commentData = {
                 content: req.body.content,
                 user_id: req.body.user_id,
-                post_id: req.body.post_id,
-                image_id: req.body.image_id
+                post_id: req.body.post_id
             }
             comment.add(commentData).then(function (){
                 res.status(201).json({
@@ -93,8 +92,7 @@ api.put('/:commentId', function (req,res){
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid){
             var newCommentData = {
-                content: req.body.content,
-                image_id: req.body.image_id
+                content: req.body.content
             }
             var oldData = admin.firestore().collection('Comments').doc(comment_id).update(newCommentData);
             oldData.then(function (){
