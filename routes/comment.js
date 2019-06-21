@@ -163,6 +163,7 @@ api.get('/:userid/:postid', function (req,res){
                 for (doc of snapshot.docs){
                    user = await userInfo(doc.get('user_id'))
                     comment = {
+                        id: doc.id,
                         user: user,
                         comment: doc.get('content'),
                     }
