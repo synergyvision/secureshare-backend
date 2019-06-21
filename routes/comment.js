@@ -144,4 +144,49 @@ api.delete('/:commentId', function (req,res){
     }) 
 })
 
+var userInfo = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then(function (doc){
+        return doc.get('username');
+    }).catch(function (error){
+        console.log(error)
+    })
+}
+
+api.get('/:userid/:postid', function (req,res){
+    uid = req.params.userid;
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
+            postId = req.params.postid;
+            admin.firestore().collection('Comments').where('post_id', '==',postId).get().then(async (snapshot) => {
+                comments = []
+                for (doc of snapshot.docs){
+                   user = await userInfo(doc.get('user_id'))
+                    comment = {
+                        user: user,
+                        comment: doc.get('content'),
+                    }
+                    comments.push(comment);
+                }
+                res.status(200).json({
+                    status: 200,
+                    message: 'post comments retrieved',
+                    data: comments
+                })
+            })
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+            
+})
+
 module.exports = api;
