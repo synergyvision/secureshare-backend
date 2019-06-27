@@ -58,32 +58,33 @@ api.put("/:userid" , function (req,res){
     var db = admin.firestore();
     var auth = firebase.auth();
     var uid = req.params.userid;
-    updateData = {
-        email: req.body.email,
+    var updateData = {
+       // email: req.body.email,
         lastname: req.body.lastname,
         name: req.body.name,
         phone: req.body.phone,
         username: req.body.username,
         bio: req.body.bio
     }
-    db.collection('Users').doc(uid).update(updateData);
-    console.log("se ha actualizado en la base de datos")
-    if (req.body.email != 'undefined'){
+    //if (req.body.email != 'undefined'){
         var encoded = req.headers.authorization.split(' ')[1]
         admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
             if (decodedToken.uid == uid) {
+                db.collection('Users').doc(uid).update(updateData);
+                console.log("se ha actualizado en la base de datos");
+                res.json({
+                    status: 200,
+                    message: "Perfil actualizado"
+                })
+                /*var user = firebase.auth().currentUser;
                 user.updateEmail(req.body.email).then(function() {
                     console.log("se ha actualizado el correo en auth")
-                    res.json({
-                        status: 200,
-                        message: "Perfil actualizado"
-                    })
                 }).catch(function (error){
                     res.json({
                         status: error.code,
                         message: error.message
                     })
-                }) 
+                })*/ 
             }else{
                 res.json({
                     status: 401,
@@ -96,13 +97,12 @@ api.put("/:userid" , function (req,res){
                 message: error.message
             })
         }) 
-    }else{
-        res.json({
-            status: 200,
-            message:"perfil actualizado"
-        })
-        
-    }
+   // }else{
+     //   res.json({
+       //     status: 200,
+         //   message:"perfil actualizado"
+       // })     
+    //}
 })
 
 api.put("/:userid/resetPassword" , function (req,res){
