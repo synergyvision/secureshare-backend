@@ -91,9 +91,11 @@ api.post('/images', multer.single('file'), (req, res) => {
           link: publicUrl,
           name: req.file.originalname
         }).then(function (){
+            admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
             res.status(200).json({
               status: 200,
-              message: 'Image received and uploaded'
+              message: 'Image received and uploaded',
+              link: publicUrl
             })
             console.log('Image uploaded')
         }).catch(function (error){
