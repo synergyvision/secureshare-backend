@@ -40,23 +40,29 @@ api.post('/files', multer.single('file'), (req, res) => {
       })
 
       blobStream.on('finish', () => {
-        // The public URL can be used to directly access the file via HTTP.
-        const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-        admin.firestore().collection('Users').doc(uid).collection('Files').add({
-          link: publicUrl,
-          name: req.file.originalname
-        }).then(function (){
-            res.status(200).json({
-              status: 200,
-              message: 'File received and uploaded'
-            })
-            console.log('File uploaded')
+        myFile = admin.storage().bucket().file(blob.name);
+        myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
+          const signedUrl = urls[0]
+          admin.firestore().collection('Users').doc(uid).collection('Images').add({
+            link: signedUrl,
+            name: req.file.originalname
+          }).then(function (){
+              admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
+              res.status(200).json({
+                status: 200,
+                message: 'Image received and uploaded',
+                link: signedUrl
+              })
+              console.log('Image uploaded')
+          }).catch(function (error){
+              res.status(400).json({
+                status: error.code,
+                message: error.message
+              })
+              console.log('Error code: ' + error.code + ', message' + error.message)
+          })
         }).catch(function (error){
-            res.status(400).json({
-              status: error.code,
-              message: error.message
-            })
-            console.log('Error code: ' + error.code + ', message' + error.message)
+          console.log(error);
         })
       });
     
@@ -68,6 +74,11 @@ api.post('/files', multer.single('file'), (req, res) => {
         message: 'You need to log in to access content'
       })
     }
+  }).catch(function (error){
+     res.status(401).json({
+       status: error.code,
+       message: error.message
+     })
   })
 })
 
@@ -86,24 +97,29 @@ api.post('/images', multer.single('file'), (req, res) => {
 
       blobStream.on('finish', () => {
         // The public URL can be used to directly access the file via HTTP.
-        const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-        admin.firestore().collection('Users').doc(uid).collection('Images').add({
-          link: publicUrl,
-          name: req.file.originalname
-        }).then(function (){
-            admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
-            res.status(200).json({
-              status: 200,
-              message: 'Image received and uploaded',
-              link: publicUrl
-            })
-            console.log('Image uploaded')
+        myFile = admin.storage().bucket().file(blob.name);
+        myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
+          const signedUrl = urls[0]
+          admin.firestore().collection('Users').doc(uid).collection('Images').add({
+            link: signedUrl,
+            name: req.file.originalname
+          }).then(function (){
+              admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
+              res.status(200).json({
+                status: 200,
+                message: 'Image received and uploaded',
+                link: signedUrl
+              })
+              console.log('Image uploaded')
+          }).catch(function (error){
+              res.status(400).json({
+                status: error.code,
+                message: error.message
+              })
+              console.log('Error code: ' + error.code + ', message' + error.message)
+          })
         }).catch(function (error){
-            res.status(400).json({
-              status: error.code,
-              message: error.message
-            })
-            console.log('Error code: ' + error.code + ', message' + error.message)
+          console.log(error);
         })
       });
     
@@ -115,7 +131,12 @@ api.post('/images', multer.single('file'), (req, res) => {
         message: 'You need to log in to access content'
       })
     }
-  })
+  }).catch(function (error){
+      res.status(401).json({
+        status: error.code,
+        message: error.message
+      })
+   })
 })
 
 module.exports = api;  
