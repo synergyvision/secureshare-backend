@@ -99,23 +99,33 @@ api.post('/images', multer.single('file'), (req, res) => {
         myFile = admin.storage().bucket().file(blob.name);
         myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
           const signedUrl = urls[0]
-          admin.firestore().collection('Users').doc(uid).collection('Images').add({
-            link: signedUrl,
-            name: req.file.originalname
-          }).then(function (){
+          admin.firestore().collection('Users').doc(uid).collection('Messages').where('link', '==',signedUrl).get().then(function (snapshot){
+            if(snapshot.empty){
+              admin.firestore().collection('Users').doc(uid).collection('Images').add({
+                link: signedUrl,
+                name: req.file.originalname
+              }).then(function (){
+                  admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
+                  res.status(200).json({
+                    status: 200,
+                    message: 'Image already uploaded retrieved link',
+                    link: signedUrl
+                  })
+              }).catch(function (error){
+                  res.status(400).json({
+                    status: error.code,
+                    message: error.message
+                  })
+                  console.log('Error code: ' + error.code + ', message' + error.message)
+              })
+            }else{
               admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
-              res.status(200).json({
-                status: 200,
-                message: 'Image received and uploaded',
-                link: signedUrl
-              })
-              console.log('Image uploaded')
-          }).catch(function (error){
-              res.status(400).json({
-                status: error.code,
-                message: error.message
-              })
-              console.log('Error code: ' + error.code + ', message' + error.message)
+                  res.status(200).json({
+                    status: 200,
+                    message: 'Image received and uploaded',
+                    link: signedUrl
+                  })
+              }
           })
         }).catch(function (error){
           console.log(error);
