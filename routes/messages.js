@@ -349,14 +349,14 @@ api.post('/:userid/mail/:tray',function (req,res){
         if (decodedToken.uid == uid){
             user = req.body.user_id;
             tray = req.params.tray;
-            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(async (snapshot)=>{
+            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
                 messages = []
                 if (snapshot.empty){
                     res.status(404).json({
                         message: 'no messages found'
                     })
                 }else{
-                    for (doc of snapshot.docs){
+                    snapshot.forEach(async (doc) =>{
                         picture = await getUserPhoto(doc.get('id_sender'));
                         message = {
                             id: doc.id,
@@ -364,7 +364,7 @@ api.post('/:userid/mail/:tray',function (req,res){
                             picture: picture
                         }
                         messages.push(message);
-                    }
+                    })
                     res.status(200).json({
                         status: 200,
                         message: 'All messages have been retrieved',
