@@ -47,7 +47,7 @@ api.post('/files', multer.single('file'), (req, res) => {
             link: signedUrl,
             name: req.file.originalname
           }).then(function (){
-              admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
+              admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
               res.status(200).json({
                 status: 200,
                 message: 'Image received and uploaded',
@@ -96,7 +96,6 @@ api.post('/images', multer.single('file'), (req, res) => {
       })
 
       blobStream.on('finish', () => {
-        // The public URL can be used to directly access the file via HTTP.
         myFile = admin.storage().bucket().file(blob.name);
         myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
           const signedUrl = urls[0]
@@ -104,7 +103,7 @@ api.post('/images', multer.single('file'), (req, res) => {
             link: signedUrl,
             name: req.file.originalname
           }).then(function (){
-              admin.firestore().collection('Users').doc(uid).update({profileUrl: publicUrl});
+              admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
               res.status(200).json({
                 status: 200,
                 message: 'Image received and uploaded',
