@@ -349,14 +349,14 @@ api.post('/:userid/mail/:tray',function (req,res){
         if (decodedToken.uid == uid){
             user = req.body.user_id;
             tray = req.params.tray;
-            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(async (snapshot) =>{
+            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
                 messages = []
                 if (snapshot.empty){
                     res.status(404).json({
                         message: 'no messages found'
                     })
                 }
-                snapshot.forEach(function (doc){
+                snapshot.forEach(async (doc) => {
                     picture = await getUserPhoto(doc.get('id_sender'));
                     message = {
                         id: doc.id,
