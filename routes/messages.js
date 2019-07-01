@@ -330,6 +330,18 @@ api.delete('/:userid/:messageid', function (req,res) {
     }) 
 })
 
+var getUserPhoto = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        picture = doc.get('profileUrl');
+        return picture;
+    }).catch(function (error){
+        res.json({
+            status: error.code,
+            message: error.message
+        })
+    })
+}
+
 api.post('/:userid/mail/:tray',function (req,res){
     uid = req.params.userid
     var encoded = req.headers.authorization.split(' ')[1]
@@ -345,6 +357,7 @@ api.post('/:userid/mail/:tray',function (req,res){
                     })
                 }
                 snapshot.forEach(function (doc){
+                    picture = await getUserPhoto(doc.get('id_sender'));
                     message = {
                         id: doc.id,
                         data: doc.data()
