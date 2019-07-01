@@ -360,7 +360,8 @@ api.post('/:userid/mail/:tray',function (req,res){
                         picture = await getUserPhoto(doc.get('id_sender'));
                         message = {
                             id: doc.id,
-                            data: doc.data()
+                            data: doc.data(),
+                            picture: picture
                         }
                         messages.push(message);
                     }
