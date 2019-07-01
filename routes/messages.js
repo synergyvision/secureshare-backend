@@ -356,7 +356,7 @@ api.post('/:userid/mail/:tray',function (req,res){
                         message: 'no messages found'
                     })
                 }else{
-                    snapshot.forEach(async (doc) =>{
+                    for (doc of snapshot.docs){
                         picture = await getUserPhoto(doc.get('id_sender'));
                         message = {
                             id: doc.id,
@@ -364,7 +364,7 @@ api.post('/:userid/mail/:tray',function (req,res){
                             picture: picture
                         }
                         messages.push(message);
-                    })
+                    }
                     res.status(200).json({
                         status: 200,
                         message: 'All messages have been retrieved',
