@@ -29,7 +29,7 @@ var getUserInfo = function (id){
 
 var getUserPhoto = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
-        picture = doc.get('profileUrl');
+        picture = snapshot.get('profileUrl');
         return picture;
     }).catch(function (error){
         res.json({

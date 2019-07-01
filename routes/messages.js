@@ -332,7 +332,7 @@ api.delete('/:userid/:messageid', function (req,res) {
 
 var getUserPhoto = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
-        picture = doc.get('profileUrl');
+        picture = snapshot.get('profileUrl');
         return picture;
     }).catch(function (error){
         res.json({
@@ -349,26 +349,27 @@ api.post('/:userid/mail/:tray',function (req,res){
         if (decodedToken.uid == uid){
             user = req.body.user_id;
             tray = req.params.tray;
-            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(async (snapshot)=>{
                 messages = []
                 if (snapshot.empty){
                     res.status(404).json({
                         message: 'no messages found'
                     })
-                }
-                snapshot.forEach(async (doc) => {
-                    picture = await getUserPhoto(doc.get('id_sender'));
-                    message = {
-                        id: doc.id,
-                        data: doc.data()
+                }else{
+                    for (doc of snapshot.docs){
+                        picture = await getUserPhoto(doc.get('id_sender'));
+                        message = {
+                            id: doc.id,
+                            data: doc.data()
+                        }
+                        messages.push(message);
                     }
-                    messages.push(message);
-                })  
-                res.status(200).json({
-                    status: 200,
-                    message: 'All messages have been retrieved',
-                    data: messages
-                })  
+                    res.status(200).json({
+                        status: 200,
+                        message: 'All messages have been retrieved',
+                        data: messages
+                    })  
+                }
                 }).catch(function (error){
                     res.status(401).json({
                         status: error.code,
