@@ -14,19 +14,34 @@ api.use(function(req, res, next) {
     next();
   });
 
+var getUsername = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        name = snapshot.get('name');
+        lastname = snapshot.get('lastname')
+        return name + ' ' + lastname;
+    }).catch(function (error){
+        res.json({
+            status: error.code,
+            message: error.message
+        })
+    })
+}
+
 api.get('/', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
       if (decodedToken.uid){
         surveys = [];
-        admin.firestore().collection('Surveys').get().then( function (snapshot){
+        admin.firestore().collection('Surveys').get().then( async (snapshot) => {
             if (snapshot){
-              snapshot.forEach( doc => {
+              for (doc of snapshot.docs){
                 survey = {
-                  [doc.id]: doc.data()
+                  id: doc.id,
+                  data: doc.data(),
+                  name: await getUsername(doc.get('uid'))
                 }
                 surveys.push(survey);
-              })
+              }
               res.status(200).json({
                   status: 200,
                   message: 'Surveys retrieved',
@@ -454,11 +469,13 @@ api.get('/:surveyId', function (req,res){
           }
           questions.push(question);
         }
-        survey.get().then(function(doc){
+        survey.get().then(async (doc) => {
+          user = await getUsername(doc.get('uid')),
           res.status(200).json({
               status:200,
               message: 'survey data retrieved',
               title: doc.get('title'),
+              user: user,
               surveyId: doc.id,
               questions: questions
           })
