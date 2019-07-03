@@ -207,51 +207,6 @@ api.post('/:surveyid/question', function (req,res){
   }) 
 })
 
-api.get('/:surveyid/question/', function (req,res){
-  var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-    if (decodedToken.uid){
-        surveys = req.params.surveyid
-        questions =[];
-        admin.firestore().collection('Surveys').doc(surveys).collection('Questions').get().then(function (snapshot){
-          if (snapshot){
-            snapshot.forEach(doc =>{
-              survey = {
-                [doc.id]: doc.data()
-              }
-              questions.push(survey)
-            })
-            res.status(200).json({
-                status: 200,
-                message: 'Survey questions retrieved',
-                data: questions
-            })
-          }else{
-            res.status(404).json({
-              status: 404,
-              message: 'This survey has no questions'
-            })
-          }
-        }).catch(function (error){
-            res.status(400).json({
-              status: error.code,
-              message: error.message
-            })
-        })
-    }else{
-      res.json({
-          status: 401,
-          messgae: 'token mismatch'
-      })
-  }
-  }).catch(function (error){
-    res.status(401).json({
-        status: error.code,
-        message: error.message
-    })
-  }) 
-})
-
 api.put('/:surveyid/question/:questionid', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
@@ -326,53 +281,6 @@ api.delete('/:surveyid/question/:questionid', function (req,res){
   }) 
 })
 
-
-
-api.get('/:surveyid/question/:questionid/answer', function (req, res){
-  var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-    if (decodedToken.uid){
-      survey = req.params.surveyid
-      question = req.params.questionid
-      answers = []
-      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').get().then( function (snapshot){
-        if (snapshot){
-          snapshot.forEach(doc => {
-            answer = {
-              [doc.id]: doc.data(0)
-            }
-            answers.push(answer);
-          })
-          res.status(200).json({
-            status: 200,
-            message: 'answers retrieved',
-            data: answers
-          })
-        }else{
-          res.status(404).json({
-            status:404,
-            message: 'No answers for this questions have been added'
-          })
-        }
-      }).catch(function (error){
-          res.status(400).json({
-            status: error.code,
-            message: error.message
-          })
-      })
-    }else{
-      res.json({
-          status: 401,
-          messgae: 'token mismatch'
-      })
-  }
-  }).catch(function (error){
-    res.status(401).json({
-        status: error.code,
-        message: error.message
-    })
-  }) 
-})
 
 api.post('/:surveyid/question/:questionid/answer', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
@@ -514,6 +422,71 @@ api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res
         message: error.message
     })
   }) 
+})
+
+var getQuestionAnswers = function (ref,id){
+    return ref.collection('Questions').doc(id).collection('Answers').get().then(function (snapshot){
+      return {
+          id: doc.id,
+          content: doc.get('content')
+      }
+    }).catch(function (error){
+        console.log(error);
+    })
+
+}
+
+
+api.get('/:surveyId', function (req,res){
+  var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken.uid){
+      surveyDoc = req.params.surveyId
+      survey = admin.firestore().collection('Surveys').doc(surveyDoc);
+      survey.collection('Questions').get().then(async (snapshot) => {
+        questions = [];
+        for (doc of snapshot.docs){
+          answers = await getQuestionAnswers(survey,doc.id);
+          question = {
+            questionId: doc.id,
+            question: doc.get('content'),
+            answers: answers
+          }
+          questions.push(question);
+        }
+        survey.get().then(function(doc){
+          res.status(200).json({
+              status:200,
+              message: 'survey data retrieved',
+              title: doc.get('title'),
+              surveyId: doc.id,
+              questions: questions
+          })
+
+        }).catch(function (error){
+              res.status(401).json({
+                status: error.code,
+                message: error.message
+            })
+        })
+      }).catch(function (error){
+            res.status(401).json({
+              status: error.code,
+              message: error.message
+          })
+      })
+    }else{
+      res.json({
+          status: 401,
+          messgae: 'token mismatch'
+      })
+  }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  })   
 })
 
 module.exports  = api;
