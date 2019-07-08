@@ -301,23 +301,26 @@ api.post('/:surveyid/question/:questionid/answer', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
   admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken.uid){
-      newAnswer = {
-        content: req.body.content,
-        votes: 0
-      }
       survey = req.params.surveyid
       question = req.params.questionid
-      admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').add(newAnswer).then( function (doc){
-        res.status(201).json({
-            status: 201,
-            message: 'Answer to question added',
-            key: doc.id
+      answers = JSON.parse(req.body.content)
+      for (i = 0; i < answers.length;i++){
+        var newAnswer = {
+          content: answers[i].content,
+          votes: 0
+        }
+        admin.firestore().collection('Surveys').doc(survey).collection('Questions').doc(question).collection('Answers').add(newAnswer).then( function (){
+          console.log('added one possible answer')
+        }).catch(function (error){
+          res.status(400).json({
+              status: error.code,
+              message: error.message
+          })
         })
-      }).catch(function (error){
-        res.status(400).json({
-            status: error.code,
-            message: error.message
-        })
+      }
+      res.status(201).json({
+        status: 201,
+        message: 'Answers to question added'
       })
     }else{
       res.json({
