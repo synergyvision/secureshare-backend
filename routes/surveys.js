@@ -469,10 +469,12 @@ api.get('/:surveyId', function (req,res){
       survey.collection('Questions').get().then(async (snapshot) => {
         questions = [];
         for (doc of snapshot.docs){
+          questionid = doc.id
+          question = doc.get('content')
           answers = await getQuestionAnswers(survey,doc.id);
           question = {
-            questionId: doc.id,
-            question: doc.get('content'),
+            questionId: questionid,
+            question: question,
             answers: answers
           }
           questions.push(question);
