@@ -444,10 +444,15 @@ api.delete('/:surveyid/question/:questionid/answer/:answerid', function (req,res
 
 var getQuestionAnswers = function (ref,id){
     return ref.collection('Questions').doc(id).collection('Answers').get().then(function (snapshot){
-      return {
+      answers = []
+      for (doc of snapshot.docs){
+        answer = {
           id: doc.id,
           content: doc.get('content')
+        }
+        answers.push(answer)
       }
+      return answers
     }).catch(function (error){
         console.log(error);
     })
