@@ -140,6 +140,40 @@ api.put('/:surveyid' , function (req,res){
   }) 
 })
 
+api.put('/:surveyid/updateAnsweredBy',  function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+      uid = req.body.uid
+      if (decodedToken.uid){
+        var answeredBy = {
+          ['AnsweredBy.'+uid]: true
+        }
+        survey = req.params.surveyid
+        admin.firestore().collection('Surveys').doc(survey).update(answeredBy ).then(function (){
+          res.status(200).json({
+            status: 200,
+            message: 'The survey has been updated'
+          })
+        }).catch(function (error){
+          res.status(400).json({
+            status: error.code,
+            message: error.message
+          })
+        })
+      }else{
+        res.json({
+            status: 401,
+            messgae: 'token mismatch'
+        })
+    }
+  }).catch(function (error){
+    res.status(401).json({
+        status: error.code,
+        message: error.message
+    })
+  }) 
+})
+
 api.delete('/:surveyid', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
