@@ -272,6 +272,7 @@ api.get('/:userid/users', function (req,res){
                             id: doc.id,
                             name: doc.get('name'),
                             lastname: doc.get('lastname'),
+                            photo: doc.get('profileUrl'),
                             contact: contact
                         }
                         users.push(info)
