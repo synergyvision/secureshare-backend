@@ -620,7 +620,8 @@ var contactInfo = function (id) {
             id: id,
             name: snapshot.get('name'),
             lastname: snapshot.get('lastname'),
-            bio: snapshot.get('bio')
+            bio: snapshot.get('bio'),
+            photo: snapshot.get('profileUrl')
         }
         return info;
     }).catch(function (error){
