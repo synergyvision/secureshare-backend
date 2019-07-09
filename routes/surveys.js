@@ -521,7 +521,8 @@ api.get('/:surveyId', function (req,res){
               title: doc.get('title'),
               user: user,
               surveyId: doc.id,
-              questions: questions
+              questions: questions,
+              answeredBy: doc.get('AnsweredBy')
           })
 
         }).catch(function (error){
