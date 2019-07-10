@@ -482,7 +482,8 @@ var getQuestionAnswers = function (ref,id){
       for (doc of snapshot.docs){
         answer = {
           id: doc.id,
-          content: doc.get('content')
+          content: doc.get('content'),
+          votes: doc.get('votes')
         }
         answers.push(answer)
       }

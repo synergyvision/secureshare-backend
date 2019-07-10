@@ -17,18 +17,7 @@ api.use(function(req, res, next) {
 
 api.post('/:userid/loginGit', function (req,res){
     
-   var unsubscribe = firebase.auth().onAuthStateChanged( function (user){
-        if (user){
-            uid = req.param.userid;
-
-        }else{
-            res.json({
-                status: 401,
-                messgae: 'You need to be logged in to access this content'
-            })
-        }
-    })
-    unsubscribe();
+   
 
 })
 

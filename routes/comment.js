@@ -165,7 +165,8 @@ api.get('/:userid/:postid', function (req,res){
                     comment = {
                         id: doc.id,
                         user: user,
-                        comment: doc.get('content'),
+                        userId: doc.get('user_id'),
+                        comment: doc.get('content')
                     }
                     comments.push(comment);
                 }
