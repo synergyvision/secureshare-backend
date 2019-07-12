@@ -496,7 +496,7 @@ var getQuestionAnswers = function (ref,id){
 
 
 api.get('/:surveyId', function (req,res){
-  var encoded = req.headers.authorization.split(' ')[1]
+    var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken.uid){
       surveyDoc = req.params.surveyId
