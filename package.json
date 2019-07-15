@@ -16,6 +16,7 @@
         "express": "^4.16.4",
         "firebase": "^5.8.2",
         "firebase-admin": "^6.5.1",
+        "fs": "0.0.1-security",
         "multer": "^1.4.1",
         "nodemailer": "^5.1.1",
         "openpgp": "^4.4.10",

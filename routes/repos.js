@@ -4,6 +4,8 @@ var admin = require("firebase-admin");
 var bodyParser = require("body-parser");
 const https = require('https');
 //var credentials = require('../githubCredentials.json');
+const multer = require('multer');
+var fs = require('fs');
 
 var credentials = {
     GitHub_secret_id: process.env.GitHub_secret_id,
@@ -20,7 +22,6 @@ api.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, Authorization, X-Requested-With, Content-Type, Accept");
     next();
   });
-
 
 /*api.get('/:userid/getClientId',function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
@@ -44,45 +45,6 @@ api.use(function(req, res, next) {
             message: error.message
         })
     })
-})*/
-
-/*api.get('/callback',function (req,res){
-    const {query} = req;
-    const {code} = query;
-    if (!code){
-        res.json({
-            message: 'error getting git hub code'
-        })
-    }
-
-    var options = {
-        hostname: 'github.com',
-        path: '/login/oauth/access_token?client_id=' + credentials.gihub_client_id + '&client_secret=' + credentials.GitHub_secret_id + '&code='+code,
-        method: 'POST',
-        headers: {'user-agent': 'node.js','Accept': 'application/json'}
-    }
-    try {
-        let request = https.request(options, function (response){
-            response.setEncoding('utf8');
-            let body = '';
-            response.on('data', function (chunk){
-                body = JSON.parse(chunk);
-                console.log(body.access_token);
-                console.log(body['access_token']);
-            });
-            response.on('end', function (){
-                console.log(body);
-            })
-        })
-
-        request.end();
-
-        res.send('done')
-
-    }catch(error){
-        console.log(error)
-    }
- 
 })*/
 
 api.get('/:userid/getToken', function (req,res){
@@ -418,41 +380,188 @@ api.delete('/:userid/deleteRepo/:repoName', function (req,res){
 
 // now the functions are for the file on the repo
 
-api.get('/:userid/getContents/:repo', function (req,res){
+api.post('/:userid/getContents/:repo', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken){
+        uid = req.params.userid;
+        if (decodedToken.uid == uid){
+            gitData =  getUserGitData(uid);
+            gitData.then(function (gitdata){
+                repoId = req.params.repo
+                if (req.body.dir){
+                    path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
+                }else{
+                    path = '/repos/' + gitData.username  + '/' + repoId +'/contents/'
+                }
+                var options = {
+                    host: 'api.github.com',
+                    path: path,
+                    method: 'GET',
+                    headers: {'user-agent': 'node.js',
+                    'Authorization': 'token ' + gitData.token}
+                }
 
-    uid = req.params.userid;
-    gitData =  getUserGitData(uid);
-    gitData.then(function (gitdata){
-        repoId = req.params.repo
-        var options = {
-            host: 'api.github.com',
-            path: '/repos/' + gitData.username  + '/' + repoId +'/contents/',
-            method: 'GET',
-            headers: {'user-agent': 'node.js',
-            'Authorization': 'token ' + gitData.token}
-        }
+                let request = https.request(options,function (response){
+                        response.setEncoding('utf8');
+                        let body = '';
+                        response.on('data',function (chunk){
+                            body += chunk;
+                        });
+                        response.on('end', () => {
+                            body = JSON.parse(body);  
+                            res.status(200).json({
+                                status: 200,
+                                message: 'Repo files retrived',
+                                data: body
+                            });
+                        });
+                        response.on('error', (e) => {
+                            console.error(`problem with request: ${e.message}`);
+                        });
+                        
 
-        let request = https.request(options,function (response){
-                response.setEncoding('utf8');
-                let body = '';
-                response.on('data',function (chunk){
-                    body += chunk;
-                });
-                response.on('end', () => {
-                    body = JSON.parse(body);  
-                    res.status(200).json({
-                        status: 200,
-                        message: 'Repo files retrived',
-                        data: body
                     });
-                });
-                response.on('error', (e) => {
-                    console.error(`problem with request: ${e.message}`);
-                });
-                
+                    request.end();   
+            })
+        }else{
+            res.status(401).json({
+                message: 'Token missmatch'
+            })
+        }    
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        })
+    })    
+})
 
-            });
-            request.end();   
+//creating a file or updating it
+
+api.put('/:userid/pushFile/:repo', multer({dest: "./uploads/"}).single('file'), function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken){
+        uid = req.params.userid;
+        if (decodedToken.uid == uid){
+            gitData =  getUserGitData(uid);
+            gitData.then(function (gitdata){
+                repoId = req.params.repo
+                path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
+                content = fs.readFileSync(req.file.path).toString("base64")
+                data = {
+                    message: "my commit message",
+                    committer: {
+                      name: "lugaliguori",
+                      email: "lugaliguori@gmail.com"
+                    },
+                    content: content
+                }
+                if (req.body.sha){
+                    data['sha'] = req.body.sha
+                }
+
+                data = JSON.stringify(data)
+
+                var options = {
+                    host: 'api.github.com',
+                    path: path,
+                    method: 'PUT',
+                    headers: {'user-agent': 'node.js',
+                    'Content-Length': data.length,
+                    'Authorization': 'token ' + gitData.token}
+                }
+
+                let request = https.request(options,function (response){
+                        response.setEncoding('utf8');
+                        let body = '';
+                        response.on('data',function (chunk){
+                            body += chunk;
+                        });
+                        response.on('end', () => {
+                            body = JSON.parse(body);  
+                            res.send(body)
+                        });
+                        response.on('error', (e) => {
+                            console.error(`problem with request: ${e.message}`);
+                        });
+                        
+
+                    });
+                    request.write(data);
+                    request.end();   
+                    fs.unlink(req.file.path,(err)=>{
+                        if (err){
+                            console.log(err);
+                        }
+                    })
+            })
+        }else{
+            res.status(401).json({
+                message: 'Token missmatch'
+            })
+        }    
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        })
+    })    
+})
+
+api.delete('/:userid/deleteFile/:repo', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken){
+        uid = req.params.userid;
+        if (decodedToken.uid == uid){
+            gitData =  getUserGitData(uid);
+            gitData.then(function (gitdata){
+                repoId = req.params.repo
+                path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
+                data = {
+                    message: "my commit message",
+                    sha: req.body.sha
+                }
+
+                data = JSON.stringify(data)
+
+                var options = {
+                    host: 'api.github.com',
+                    path: path,
+                    method: 'DELETE',
+                    headers: {'user-agent': 'node.js',
+                    'Content-Length': data.length,
+                    'Authorization': 'token ' + gitData.token}
+                }
+
+                let request = https.request(options,function (response){
+                        response.setEncoding('utf8');
+                        let body = '';
+                        response.on('data',function (chunk){
+                            body += chunk;
+                        });
+                        response.on('end', () => {
+                            body = JSON.parse(body);  
+                            res.send(body)
+                        });
+                        response.on('error', (e) => {
+                            console.error(`problem with request: ${e.message}`);
+                        });
+                        
+
+                    });
+                    request.write(data);
+                    request.end();   
+            })
+        }else{
+            res.status(401).json({
+                message: 'Token missmatch'
+            })
+        }    
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        })
     })
 })
 
