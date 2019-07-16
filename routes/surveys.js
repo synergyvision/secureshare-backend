@@ -80,7 +80,8 @@ api.post('/', function (req,res){
       var newSurveyData = {
         title: req.body.title,
         uid: req.body.id_user,
-        expires: req.body.expires_in
+        expires: req.body.expires_in,
+        created: Date.now
       }
       admin.firestore().collection('Surveys').add(newSurveyData).then(function (ref){
           res.status(201).json({
