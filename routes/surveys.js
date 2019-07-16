@@ -77,11 +77,12 @@ api.post('/', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken.uid){
+      created = new Date();
       var newSurveyData = {
         title: req.body.title,
         uid: req.body.id_user,
         expires: req.body.expires_in,
-        created: Date.now
+        created: created
       }
       admin.firestore().collection('Surveys').add(newSurveyData).then(function (ref){
           res.status(201).json({
