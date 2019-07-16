@@ -47,6 +47,10 @@ api.use(function(req, res, next) {
     })
 })*/
 
+var decrypt = function (string,key){
+
+}
+
 api.get('/:userid/getToken', function (req,res){
 
     var encoded = req.headers.authorization.split(' ')[1]

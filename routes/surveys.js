@@ -79,7 +79,8 @@ api.post('/', function (req,res){
     if (decodedToken.uid){
       var newSurveyData = {
         title: req.body.title,
-        uid: req.body.id_user
+        uid: req.body.id_user,
+        expires: req.body.expires_in
       }
       admin.firestore().collection('Surveys').add(newSurveyData).then(function (ref){
           res.status(201).json({
@@ -520,6 +521,7 @@ api.get('/:surveyId', function (req,res){
               status:200,
               message: 'survey data retrieved',
               title: doc.get('title'),
+              expires: doc.get('expires'),
               user: user,
               surveyId: doc.id,
               questions: questions,
