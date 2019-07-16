@@ -129,10 +129,13 @@ api.get('/:userid/getToken', function (req,res){
 var getUserGitData = function (id){
 
     return admin.firestore().collection('Users').doc(id).get().then(function (snapshot){
-
+        name = snapshot.get('name');
+        lastname = snapshot.get('lastname')
         gitData = {
             username : snapshot.get('githubUsername'),
-            token: snapshot.get('gitHubToken')
+            token: snapshot.get('gitHubToken'),
+            name: name + lastname,
+            email: snapshot.get('email')
         }
         return gitData
     }).catch(function (error){
@@ -451,8 +454,8 @@ api.put('/:userid/pushFile/:repo', multer({dest: "./uploads/"}).single('file'), 
                 data = {
                     message: "my commit message",
                     committer: {
-                      name: "lugaliguori",
-                      email: "lugaliguori@gmail.com"
+                      name: gitData.name,
+                      email: gitData.email
                     },
                     content: content
                 }
@@ -519,7 +522,11 @@ api.delete('/:userid/deleteFile/:repo', function (req,res){
                 path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
                 data = {
                     message: "my commit message",
-                    sha: req.body.sha
+                    sha: req.body.sha,
+                    committer: {
+                        name: gitData.name,
+                        email: gitData.email
+                    }
                 }
 
                 data = JSON.stringify(data)
