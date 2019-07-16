@@ -22,6 +22,7 @@ api.post("/", function (req, res){
        au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
             au.currentUser.getIdToken(true).then(function(idToken) {
                 res.status(200).json({
+                    status: 200,
                     message: 'User has logged in',
                     uid: au.currentUser.uid,
                     token: idToken
