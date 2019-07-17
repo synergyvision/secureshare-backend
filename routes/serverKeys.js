@@ -10,14 +10,16 @@ api.use(function(req, res, next) {
     next();
   });
 
-var publicKey = process.env.server_public_key;
-console.log(publicKey)
+  var publicKey = process.env.server_public_key.replace(/\\n/g,'\n');
+
 api.get('/', function (req,res){
     //publickey = credentials.server_public_key;
+
+    
     res.status(200).json({
         status:200,
         message: 'got server public key',
-        publickey: publickey
+        publickey: publicKey
     })
     
 })
