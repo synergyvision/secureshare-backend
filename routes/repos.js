@@ -130,6 +130,35 @@ api.get('/:userid/getToken', function (req,res){
     })            
 })
 
+api.get('/:userid/checkToken', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken){
+        uid = req.params.userid;
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).get().then(function (snapshot){
+                if (snapshot.get('gitHubToken')){
+                    tokenExists = true;
+                }else{
+                    tokenExists = false;
+                }
+                res.status(200).json({
+                    status: 200,
+                    tokenExists: tokenExists
+                })
+            })
+        }else{
+            res.status(401).json({
+                message: 'token mismmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(400).json({
+            status: error.status,
+            message: error.message
+        })
+    })
+})
+
 var getUserGitData = function (id){
 
     return admin.firestore().collection('Users').doc(id).get().then(function (snapshot){
