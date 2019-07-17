@@ -4,7 +4,7 @@ var admin = require("firebase-admin");
 var fire = require("firebase");
 var bodyParser = require("body-parser");
 var nodemailer = require("nodemailer");
-
+//var keys = require('../keys.json');
 var api = express.Router();
 
 api.use(bodyParser.urlencoded({ extended: false }));
@@ -18,7 +18,7 @@ api.use(function(req, res, next) {
   var decryptPassword = async (string) => {
     //passphrase = keys.server_passphrase;
     //privateKey = keys.server_private_key;
-    var privateKey = process.env.server_private_key.replace(/\\n/g,'\n')
+    var privateKey = process.env.server_private_key
     var passphrase = process.env.server_passphrase
     var privKeyObj = (await openpgp.key.readArmored(privateKey)).keys[0]
 	await privKeyObj.decrypt(passphrase)
