@@ -6,11 +6,14 @@ const https = require('https');
 //var credentials = require('../githubCredentials.json');
 const multer = require('multer');
 var fs = require('fs');
+//var keys = require('../keys.json');
+var openpgp = require('openpgp');
 
 var credentials = {
     GitHub_secret_id: process.env.GitHub_secret_id,
     gihub_client_id: process.env.gihub_client_id
 }
+
 
 var api = express.Router();
 
@@ -47,7 +50,22 @@ api.use(function(req, res, next) {
     })
 })*/
 
-var decrypt = function (string,key){
+var decryptPassword = async (string) => {
+    //passphrase = keys.server_passphrase;
+    //privateKey = keys.server_private_key;
+    var publicKey = process.env.server_private_key.replace(/\\n/g,'\n')
+    var publicKey = process.env.server_passphrase
+    var privKeyObj = (await openpgp.key.readArmored(privateKey)).keys[0]
+	await privKeyObj.decrypt(passphrase)
+	const options = {
+		message: await openpgp.message.readArmored(string),
+		privateKeys: [privKeyObj]           
+	}
+
+	return openpgp.decrypt(options).then(plaintext => {
+		decrypted = plaintext.data;
+		return decrypted
+	})
 
 }
 
@@ -70,49 +88,50 @@ api.post('/:userid/getToken', function (req,res){
 
             user = req.body.username;
             password = req.body.password
-
-            var options = {
-                host: 'api.github.com',
-                path: '/authorizations/clients/' + credentials.gihub_client_id,
-                method: 'PUT',
-                headers: {'user-agent': 'node.js', 
-                'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
-                'Content-Type': 'application/json',
-                'Content-Length': data.length}
-            }
-        
-            let request = https.request(options,function (response){
-                    response.setEncoding('utf8');
-                    let body = '';
-                    response.on('data',function (chunk){
-                        body += chunk;
+            password = decryptPassword(password);
+            password.then(function (password){
+                var options = {
+                    host: 'api.github.com',
+                    path: '/authorizations/clients/' + credentials.gihub_client_id,
+                    method: 'PUT',
+                    headers: {'user-agent': 'node.js', 
+                    'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
+                    'Content-Type': 'application/json',
+                    'Content-Length': data.length}
+                }
+                let request = https.request(options,function (response){
+                        response.setEncoding('utf8');
+                        let body = '';
+                        response.on('data',function (chunk){
+                            body += chunk;
+                        });
+                        response.on('end', () => {
+                            body = JSON.parse(body);
+                            if (body['token']){
+                                admin.firestore().collection('Users').doc(uid).update({
+                                    gitHubToken: body['token'],
+                                    githubUsername: user
+                                })
+                                res.status(201).json({
+                                    status: 'created',
+                                    message: 'the user Oauth token for github has been created'
+                                })
+                            }else{
+                                res.status(400).json({
+                                    status: 400,
+                                    message: 'could not create token'
+                                })
+                            }   
+                        });
+                        response.on('error', (e) => {
+                            console.error(`problem with request: ${e.message}`);
+                        });
+                        
+    
                     });
-                    response.on('end', () => {
-                        body = JSON.parse(body);
-                        if (body['token']){
-                            admin.firestore().collection('Users').doc(uid).update({
-                                gitHubToken: body['token'],
-                                githubUsername: user
-                            })
-                            res.status(201).json({
-                                status: 'created',
-                                message: 'the user Oauth token for github has been created'
-                            })
-                        }else{
-                            res.status(400).json({
-                                status: 400,
-                                message: 'could not create token'
-                            })
-                        }   
-                    });
-                    response.on('error', (e) => {
-                        console.error(`problem with request: ${e.message}`);
-                    });
-                    
-
-                });
-                request.write(data);
-                request.end();     
+                    request.write(data);
+                    request.end(); 
+            })   
 
         }else{
             res.status(401).json({

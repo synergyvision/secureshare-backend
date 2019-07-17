@@ -1,4 +1,5 @@
 var express = require("express");
+var openpgp = require("openpgp");
 var apiRegister= require("./routes/signup");
 var apiLogin= require("./routes/login");
 var apiLogout= require("./routes/logout");
@@ -9,9 +10,12 @@ var apiContacts = require("./routes/contacts");
 var apiChats = require("./routes/chats");
 var apiMessage = require("./routes/messages");
 var apiSurveys = require("./routes/surveys");
+var apiKeys = require("./routes/serverKeys");
 var apiFiles = require("./routes/files");
 var mnemonic = require("./routes/mnemonic");
 var apiRepo = require("./routes/repos");
+
+
 
  var admin = require("firebase-admin");
  var firebase = require("firebase");
@@ -77,6 +81,7 @@ app.use("/surveys",apiSurveys);
 app.use("/upload", apiFiles);
 app.use("/mnemonic",mnemonic);
 app.use("/repositories",apiRepo);
+app.use("/configKeys",apiKeys);
 
 app.listen(process.env.PORT, function() {
     console.log("Express app started on heroku server");

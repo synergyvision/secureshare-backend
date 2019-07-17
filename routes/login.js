@@ -2,8 +2,8 @@ var express = require("express");
 var admin = require("firebase-admin");
 var fire = require("firebase");
 var bodyParser = require("body-parser");
-var bcrypt = require("bcrypt");
 var nodemailer = require("nodemailer");
+var openpgp = require('openpgp');
 
 var api = express.Router();
 
@@ -15,34 +15,55 @@ api.use(function(req, res, next) {
     next();
   });
  
+  var decryptPassword = async (string) => {
+    //passphrase = keys.server_passphrase;
+    //privateKey = keys.server_private_key;
+    var publicKey = process.env.server_private_key.replace(/\\n/g,'\n')
+    var publicKey = process.env.server_passphrase
+    var privKeyObj = (await openpgp.key.readArmored(privateKey)).keys[0]
+	await privKeyObj.decrypt(passphrase)
+	const options = {
+		message: await openpgp.message.readArmored(string),
+		privateKeys: [privKeyObj]           
+	}
+
+	return openpgp.decrypt(options).then(plaintext => {
+		decrypted = plaintext.data;
+		return decrypted
+	})
+
+}
 
 api.post("/", function (req, res){
     var db = admin.database();
     var au = fire.auth();    
-       au.signInWithEmailAndPassword(req.body.email, req.body.password).then ( (response) => {
-            au.currentUser.getIdToken(true).then(function(idToken) {
-                res.status(200).json({
-                    status: 200,
-                    message: 'User has logged in',
-                    uid: au.currentUser.uid,
-                    token: idToken
-                })
-              }).catch(function(error) {
-                    console.log(error);
-                    res.status(400).json({
-                        status: error.code,
-                        message: error.message 
+       password = decryptPassword(req.body.password);
+        password.then(function (password){
+        au.signInWithEmailAndPassword(req.body.email,password).then ( (response) => {
+                au.currentUser.getIdToken(true).then(function(idToken) {
+                    res.status(200).json({
+                        status: 200,
+                        message: 'User has logged in',
+                        uid: au.currentUser.uid,
+                        token: idToken
                     })
-              });
-       }).
-       catch(function(error) {
-            var code = error.code;
-            var message = error.message;
-            return res.json({
-                status: code,
-                message: message
-            })
-      })
+                }).catch(function(error) {
+                        console.log(error);
+                        res.status(400).json({
+                            status: error.code,
+                            message: error.message 
+                        })
+                });
+        }).
+        catch(function(error) {
+                var code = error.code;
+                var message = error.message;
+                return res.json({
+                    status: code,
+                    message: message
+                })
+        })
+    })    
 
 });
 
