@@ -18,7 +18,8 @@ api.use(function(req, res, next) {
   var decryptPassword = async (string) => {
     //passphrase = keys.server_passphrase;
     //privateKey = keys.server_private_key;
-    var privateKey = process.env.server_private_key;
+    var privateKey = process.env.server_private_key.replace(/\r\n/g, "");;
+    console.log(privateKey);
     console.log(await openpgp.key.readArmored(privateKey))
     var privKeyObj = (await openpgp.key.readArmored(privateKey)).keys[0]
 	await privKeyObj.decrypt(passphrase)
