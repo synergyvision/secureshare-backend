@@ -1,4 +1,4 @@
-var credentials = require('../keys.json');
+//var credentials = require('../keys.json');
 var express = require("express");
 var admin = require("firebase-admin");
 var api = express.Router();
