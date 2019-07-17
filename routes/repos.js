@@ -51,7 +51,7 @@ var decrypt = function (string,key){
 
 }
 
-api.get('/:userid/getToken', function (req,res){
+api.post('/:userid/getToken', function (req,res){
 
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken){
