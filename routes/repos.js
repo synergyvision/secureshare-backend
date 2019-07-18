@@ -505,7 +505,7 @@ api.put('/:userid/pushFile/:repo', multer({dest: "./uploads/"}).single('file'), 
                 path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
                 content = fs.readFileSync(req.file.path).toString("base64")
                 data = {
-                    message: "my commit message",
+                    message: req.body.commit,
                     committer: {
                       name: gitData.name,
                       email: gitData.email
