@@ -572,8 +572,9 @@ api.delete('/:userid/deleteFile/:repo', function (req,res){
             gitData =  getUserGitData(uid);
             gitData.then(function (gitdata){
                 repoId = req.params.repo
-                path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + req.body.dir
-                console.log(req.body.dir,req.body.sha)
+                var dir = decodeURIComponent(req.body.dir)
+                path = '/repos/' + gitData.username  + '/' + repoId +'/contents/' + dir
+                console.log(dir,req.body.sha)
                 data = {
                     message: "deleted from app client",
                     sha: req.body.sha,
