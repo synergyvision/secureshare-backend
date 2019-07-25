@@ -105,7 +105,7 @@ api.put("/:userid" , function (req,res){
     //}
 })
 
-api.put("/:userid/resetPassword" , function (req,res){
+/*api.put("/:userid/resetPassword" , function (req,res){
     var au = firebase.auth();
     var uid = req.params.userid;
     var user = firebase.auth().currentUser;
@@ -123,7 +123,7 @@ api.put("/:userid/resetPassword" , function (req,res){
             message: message
         })
     })
-});
+});*/
 
 
 
@@ -459,51 +459,6 @@ api.post("/:userid/getMultipleKeys", function (req,res){
     }) 
 })
 
-api.post("/:userid/encrypt", function (req,res) {
-    var uid = req.params.userid
-    var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-        if (decodedToken.uid == uid){
-            var message = req.body.message
-            var pubKeys = getPublicKeys(uid);
-            pubKeys.then((pubKeys) => {
-                console.log(pubKeys);
-                var decryptedPublic = readPubKey(pubKeys);
-                decryptedPublic.then((decryptedPublic) => {
-                    var options = {
-                        message: openpgp.message.fromText(message),
-                        publicKeys: decryptedPublic,
-                    }
-                    openpgp.encrypt(options).then((ciphertext) => {
-                        encryptedMessage = ciphertext.data;
-                        res.status(200).format({
-                            text: function(){
-                                res.send(encryptedMessage)
-                            }
-                        })
-                    }).catch(function (err){
-                        res.send(err);
-                    })
-                }).catch(function (err){
-                    res.send(err);
-                })
-            }).catch(function (err){
-                res.send(err);
-            })
-        }else{
-            res.json({
-                status: 401,
-                messgae: 'token mismatch'
-            })
-        }
-    }).catch(function (error){
-        res.status(401).json({
-            status: error.code,
-            message: error.message
-        })
-    }) 
-})   
-
 var readMessage = async (message) => {
     m =  await openpgp.message.readArmored(message)
     return m
@@ -514,65 +469,6 @@ var decryptPrivKey = async (key,pass) => {
     await priv.decrypt(pass)
     return priv
 }
-
-// not in use
-api.post("/:userid/decrypt", function (req,res) {
-    var uid = req.params.userid;
-    var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-        if (decodedToken.uid == uid){
-            var message = req.body.message;
-            var privKey = getPrivKeys(uid);
-            privKey.then( (privKey) => {
-                console.log("got key")
-                pass = getPass(uid);
-                pass.then( (pass) => {
-                    console.log('got pass')
-                    var key = decryptPrivKey(privKey,pass);
-                    key.then((key)=>{
-                        console.log("decrypted key")
-                        var text = readMessage(message);
-                        text.then((text) => {
-                            console.log("read text")
-                            var options = {
-                                message: text,
-                                privateKeys: key
-                            }
-                            openpgp.decrypt(options).then(plaintext => {
-                                res.json({
-                                    status:200,
-                                    message: 'data decrypted',
-                                    data: plaintext
-                                })
-                            }).catch(function (error){
-                                res.send(error)
-                            })
-                        }).catch(function (error){
-                            res.send(error)
-                        }) 
-                    }).catch(function(error){
-                        res.send(error)
-                    })
-                }).catch(function(error){
-                    res.send(error)
-                })
-            }).catch(function(error){
-                res.send(error)
-            })
-        }else{
-            res.json({
-                status: 401,
-                messgae: 'token mismatch'
-            })
-        }
-    }).catch(function (error){
-        res.status(401).json({
-            status: error.code,
-            message: error.message
-        })
-    }) 
-})
-
 
 api.get('/:userid/post', function (req,res){
     var uid = req.params.userid;

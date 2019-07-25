@@ -11,8 +11,9 @@ api.use(function(req, res, next) {
   });
 
   var publicKey = process.env.server_public_key.replace(/\\n/g,'\n');
+  var facebookId = process.env.facebook_id_app;
 
-api.get('/', function (req,res){
+api.get('/serverKeys', function (req,res){
     //publickey = credentials.server_public_key;
 
     
@@ -21,6 +22,29 @@ api.get('/', function (req,res){
         message: 'got server public key',
         publickey: publicKey
     })
+    
+})
+
+api.post('/facebookId', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid){
+            res.status(200).json({
+                status:200,
+                message: 'got app fb id',
+                id: facebookId
+            })
+        }else{
+            res.status(401).json({
+                message: 'token missmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    })        
     
 })
 

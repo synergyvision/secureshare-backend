@@ -81,7 +81,7 @@ app.use("/surveys",apiSurveys);
 app.use("/upload", apiFiles);
 app.use("/mnemonic",mnemonic);
 app.use("/repositories",apiRepo);
-app.use("/configKeys",apiKeys);
+app.use("/config",apiKeys);
 
 app.listen(process.env.PORT, function() {
     console.log("Express app started on heroku server");
