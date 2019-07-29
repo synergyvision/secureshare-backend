@@ -41,6 +41,8 @@ var getUserPhoto = function (id){
 
 
 api.get('/', function (req,res){
+    console.log(req);
+    console.log(req.url)
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         posts = [];
