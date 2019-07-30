@@ -33,7 +33,6 @@ api.use(function(req, res, next) {
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
             var db = admin.firestore();
             db.collection('Users').doc(uid).get().then( function (snapshot){
-                console.log(snapshot.data())
                 var user = snapshot.data();
                 res.status(200).json({
                     status: 200,

@@ -60,17 +60,17 @@ api.get('/:userId/addedSocials', function (req,res){
         uid = req.params.userId
         if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).get().then(function (snapshot){
-                if (doc.get('facebookValidation')){
+                if (snapshot.get('facebookValidation')){
                     var facebookValid = true
                 }else{
                     var facebookValid = false
                 }
-                if (doc.get('twitterValidation')){
+                if (snapshot.get('twitterValidation')){
                     var twitterValid = true
                 }else{
                     var twitterValid = false
                 }
-                if (doc.get('githubUsername')){
+                if (snapshot.get('githubUsername')){
                     var gitHubValid = true
                 }else{
                     var gitHubValid = false
