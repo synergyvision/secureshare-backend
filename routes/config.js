@@ -54,4 +54,77 @@ api.post('/facebookId', function (req,res){
     
 })
 
+api.get('/:userId/addedSocials', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        uid = req.params.userId
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).get().then(function (snapshot){
+                if (doc.get('facebookValidation')){
+                    var facebookValid = true
+                }else{
+                    var facebookValid = false
+                }
+                if (doc.get('twitterValidation')){
+                    var twitterValid = true
+                }else{
+                    var twitterValid = false
+                }
+                if (doc.get('githubUsername')){
+                    var gitHubValid = true
+                }else{
+                    var gitHubValid = false
+                }
+                res.status(200).json({
+                    status: 200,
+                    message: 'Users socials retrieved',
+                    facebook: facebookValid,
+                    twitter: twitterValid,
+                    github: gitHubValid
+                })
+            }).catch(function (error){
+                res.status(401).json({
+                    status: error.code,
+                    message: error.message
+                })
+            })
+        }else{
+            res.status(401).json({
+                message: 'token missmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
+api.post('/:userId/validateFacebook', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        uid = req.params.userId
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).update({
+                facebookValidation: true 
+            })
+            res.status(201).json({
+                status: 200,
+                message: 'Added facebook validation to user'
+            })
+        }else{
+            res.status(401).json({
+                message: 'token missmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
+
 module.exports = api;
