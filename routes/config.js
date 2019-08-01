@@ -157,7 +157,7 @@ api.post('/:userId/getTwitterFeed', function (req,res){
                         body = JSON.parse(body)
                         var options = {
                             host: 'api.twitter.com',
-                            path: '/1.1/statuses/user_timeline.json?screen_name='+username'&count=2',
+                            path: '/1.1/statuses/user_timeline.json?screen_name='+username+'&count=2',
                             method: 'GET',
                             headers: {'user-agent': 'node.js', 
                             'Authorization': 'Bearer ' + body.access_token}
