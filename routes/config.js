@@ -128,7 +128,7 @@ api.post('/:userId/validateFacebook', function (req,res){
     }) 
 })
 
-api.get('/:userId/getTwitterToken', function (req,res){
+api.post('/:userId/getTwitterFeed', function (req,res){
 
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
@@ -155,11 +155,35 @@ api.get('/:userId/getTwitterToken', function (req,res){
                     });
                     response.on('end', () => {
                         body = JSON.parse(body)
-                        res.status(200).json({
-                            status: 200,
-                            data: "token retrieved",
-                            token: body.access_token
-                        });
+                        var options = {
+                            host: 'api.twitter.com',
+                            path: '/1.1/statuses/user_timeline.json?screen_name=lugaliguori&count=2',
+                            method: 'GET',
+                            headers: {'user-agent': 'node.js', 
+                            'Authorization': 'Bearer ' + body.access_token}
+                        }
+                        let request2 = https.request(options,function (response2){
+                                response2.setEncoding('utf8');
+                                let feed = '';
+                                response2.on('data',function (chunk){
+                                    feed += chunk;
+                                });
+                                response2.on('end', () => {
+                                    feed = JSON.parse(feed)
+                                    res.status(200).json({
+                                        status: 200,
+                                        data: "user timeline retrieved",
+                                        feed:  feed
+                                    });
+                                });
+                                response2.on('error', (e) => {
+                                    console.error(`problem with request: ${e.message}`);
+                                });
+                                
+            
+                            });
+
+                            request2.end();   
                     });
                     response.on('error', (e) => {
                         console.error(`problem with request: ${e.message}`);
@@ -181,8 +205,6 @@ api.get('/:userId/getTwitterToken', function (req,res){
         })
     }) 
 })
-
-
 
 
 module.exports = api;
