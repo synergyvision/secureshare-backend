@@ -137,7 +137,7 @@ api.post('/:userId/getTwitterFeed', function (req,res){
             var string = encodeURI(process.env.twitter_consumer_api_key) + ":" + encodeURI(process.env.twitter_api_key_secret)
             string = new Buffer(string).toString("base64");
             var data = "grant_type=client_credentials"
-
+            username = req.body.username
             var options = {
                 host: 'api.twitter.com',
                 path: '/oauth2/token',
@@ -157,7 +157,7 @@ api.post('/:userId/getTwitterFeed', function (req,res){
                         body = JSON.parse(body)
                         var options = {
                             host: 'api.twitter.com',
-                            path: '/1.1/statuses/user_timeline.json?screen_name=lugaliguori&count=2',
+                            path: '/1.1/statuses/user_timeline.json?screen_name='+username'&count=2',
                             method: 'GET',
                             headers: {'user-agent': 'node.js', 
                             'Authorization': 'Bearer ' + body.access_token}
