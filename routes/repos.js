@@ -88,7 +88,6 @@ api.post('/:userid/getToken', function (req,res){
 
             user = req.body.username;
             password = req.body.password
-            console.log(password);
             password = decryptPassword(password);
             password.then(function (password){
                 var options = {

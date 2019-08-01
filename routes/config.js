@@ -2,6 +2,8 @@
 var express = require("express");
 var admin = require("firebase-admin");
 var bodyParser = require("body-parser");
+const https = require('https');
+var crypto = require("crypto");
 var api = express.Router();
 
 
@@ -125,6 +127,62 @@ api.post('/:userId/validateFacebook', function (req,res){
         })
     }) 
 })
+
+api.get('/:userId/getTwitterToken', function (req,res){
+
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        uid = req.params.userId
+        if (decodedToken.uid == uid){
+            var string = encodeURI(process.env.twitter_consumer_api_key) + ":" + encodeURI(process.env.twitter_api_key_secret)
+            string = new Buffer(string).toString("base64");
+            var data = "grant_type=client_credentials"
+
+            var options = {
+                host: 'api.twitter.com',
+                path: '/oauth2/token',
+                method: 'POST',
+                headers: {'user-agent': 'node.js', 
+                'Authorization': 'Basic ' + string, 
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'Content-Length': data.length}
+            }
+            let request = https.request(options,function (response){
+                    response.setEncoding('utf8');
+                    let body = '';
+                    response.on('data',function (chunk){
+                        body += chunk;
+                    });
+                    response.on('end', () => {
+                        body = JSON.parse(body)
+                        res.status(200).json({
+                            status: 200,
+                            data: "token retrieved",
+                            token: body.access_token
+                        });
+                    });
+                    response.on('error', (e) => {
+                        console.error(`problem with request: ${e.message}`);
+                    });
+                    
+
+                });
+                request.write(data);
+                request.end();   
+        }else{
+            res.status(401).json({
+                message: 'token missmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
+
 
 
 module.exports = api;
