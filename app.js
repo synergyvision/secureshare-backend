@@ -68,6 +68,14 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
+app.listen(process.env.PORT, function() {
+  console.log("Express app started on heroku server");
+})
+
+/*app.listen(3000, function() {
+  console.log("Express app started on port 3000.");
+});*/
+
 app.use("/signup", apiRegister);
 app.use("/login", apiLogin);
 app.use("/logout", apiLogout);
@@ -83,10 +91,3 @@ app.use("/mnemonic",mnemonic);
 app.use("/repositories",apiRepo);
 app.use("/config",apiKeys);
 
-app.listen(process.env.PORT, function() {
-    console.log("Express app started on heroku server");
-  })
-
-/*app.listen(3000, function() {
-    console.log("Express app started on port 3000.");
-});*/
