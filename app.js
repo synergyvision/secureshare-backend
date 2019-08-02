@@ -68,9 +68,12 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
-app.listen(process.env.PORT, function() {
+var server = app.listen(process.env.PORT, function() {
   console.log("Express app started on heroku server");
 })
+
+let io = require('socket.io')(server);
+app.set("io", io);
 
 /*app.listen(3000, function() {
   console.log("Express app started on port 3000.");
