@@ -103,6 +103,31 @@ api.get('/:userId/addedSocials', function (req,res){
     }) 
 })
 
+api.post('/:userId/validateTwitter', function (req,res){
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        uid = req.params.userId
+        if (decodedToken.uid == uid){
+            admin.firestore().collection('Users').doc(uid).update({
+                twitterValidation: true 
+            })
+            res.status(201).json({
+                status: 200,
+                message: 'Added twitter validation to user'
+            })
+        }else{
+            res.status(401).json({
+                message: 'token missmatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+})
+
 api.post('/:userId/validateFacebook', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
@@ -137,8 +162,7 @@ api.post('/:userId/getTwitterFeed', function (req,res){
             var string = encodeURI(process.env.twitter_consumer_api_key) + ":" + encodeURI(process.env.twitter_api_key_secret)
             string = new Buffer(string).toString("base64");
             var data = "grant_type=client_credentials"
-            username = req.body.username
-            console.log(username)
+            username = req.body.username;
             var options = {
                 host: 'api.twitter.com',
                 path: '/oauth2/token',
@@ -156,7 +180,6 @@ api.post('/:userId/getTwitterFeed', function (req,res){
                     });
                     response.on('end', () => {
                         body = JSON.parse(body)
-                        console.log(body);
                         var options = {
                             host: 'api.twitter.com',
                             path: '/1.1/statuses/user_timeline.json?screen_name='+username+'&count=2',
