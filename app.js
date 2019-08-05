@@ -64,19 +64,22 @@ const settings = {timestampsInSnapshots: true};
 firestore.settings(settings);
 var app = express();
 
+var server = require('http').Server(app);
+
 app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
-
-var server = app.listen(process.env.PORT, function() {
-  console.log("Express app started on heroku server");
-})
 
 let io = require('socket.io')(server);
 app.set("io", io);
 io.on('connection', function (socket){
   console.log('connected, i hope')
 })
+
+server.listen(process.env.PORT, function() {
+  console.log("Express app started on heroku server");
+})
+
 
 /*app.listen(3000, function() {
   console.log("Express app started on port 3000.");
