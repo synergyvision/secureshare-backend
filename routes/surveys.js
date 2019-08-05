@@ -29,6 +29,24 @@ var getUsername = function (id){
     })
 }
 
+var startObservable = function(){
+  ref = admin.firestore().collection('Surveys');
+  var observer = ref.onSnapshot(querySnapshot => {
+    console.log(`Received query snapshot of size ${querySnapshot.size}`);
+    io.emmit('updateSurveys',function (){
+      console.log('emmited update survey event')
+    });
+  }, err => {
+    console.log(`Encountered error: ${err}`);
+  });
+  
+}
+
+io.on('subscribeSurvey', function (){
+  startObservable()
+
+})
+
 api.get('/', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
@@ -74,43 +92,6 @@ api.get('/', function (req,res){
       })
   }) 
 })
-
-api.get('/:userId/subscribe', function (req,res){
-    var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-      uid = req.params.userid
-      if (decodedToken.uid == uid){
-          var ref = admin.firestore().collection('Surveys');
-          var observer = ref.onSnapshot(querysNAPSHOT => {
-            console.log('started observer')
-            let changes = querysNAPSHOT.docChanges();
-            console.log(changes)
-            changes.forEach(changes => {
-              if (changes.type == 'added'){
-                io.emmit('updateSurveys', {update: true})
-              }
-            })
-          }, err =>{
-            io.emmit('error')
-          });
-          res.json({
-            status: 200,
-            message: 'subscribed'
-          })
-      }else{
-        res.json({
-            status: 401,
-            messgae: 'token mismatch'
-        })
-    }
-  }).catch(function (error){
-      res.status(401).json({
-          status: error.code,
-          message: error.message
-      })
-  }) 
-})
-
 
 api.post('/', function (req,res){
   var encoded = req.headers.authorization.split(' ')[1]
