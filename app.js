@@ -74,6 +74,9 @@ var server = app.listen(process.env.PORT, function() {
 
 let io = require('socket.io')(server);
 app.set("io", io);
+io.on('connection', function (socket){
+  console.log('connected, i hope')
+})
 
 /*app.listen(3000, function() {
   console.log("Express app started on port 3000.");

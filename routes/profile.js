@@ -669,7 +669,7 @@ api.delete('/:userid/chats/:chatid', function (req,res){
 
 
 // the following is for the 2 factor auth (untested)
-var setSecretKey = function (key, uid){
+/*var setSecretKey = function (key, uid){
      db.ref().child("Users/" + uid + "/token").set(key)
  }
 
@@ -862,7 +862,7 @@ api.post("/twofactor/verify" , function(req, res){
     .catch((error) => {
         return res.status(400).send(error);
     });
-});
+});*/
 
 
 
