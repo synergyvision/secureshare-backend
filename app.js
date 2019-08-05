@@ -77,9 +77,11 @@ var startObservable = function(socket){
   ref = firestore.collection('Surveys');
   console.log('started observable')
   var observer = ref.onSnapshot(querySnapshot => {
-    socket.emit('updateSurveys',function (){
-      console.log('emmited update survey event')
-    });
+    changes.forEach(changes => {
+      if (changes.type == 'added'){
+        socket.emmit('updateSurveys', {update: true})
+      }
+    })
   }, err => {
     console.log(`Encountered error: ${err}`);
   });
