@@ -82,7 +82,9 @@ api.get('/:userId/subscribe', function (req,res){
       if (decodedToken.uid == uid){
           var ref = admin.firestore().collection('Surveys');
           var observer = ref.onSnapshot(querysNAPSHOT => {
+            console.log('started observer')
             let changes = querysNAPSHOT.docChanges();
+            console.log(changes)
             changes.forEach(changes => {
               if (changes.type == 'added'){
                 io.emmit('updateSurveys', {update: true})
