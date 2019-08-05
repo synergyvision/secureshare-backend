@@ -73,17 +73,6 @@ app.get("/", function(req,res){
 var io = require('socket.io')(server);
 app.set('io',io);
 
-
-
-io.on('connection', function (socket){
-  console.log('connected socket.io')
-  socket.on('subscribeSurvey', function (){
-    startObservable(socket)
-  })
-  
-})
-
-
 var startObservable = function(socket){
   ref = firestore.collection('Surveys');
   console.log('started observable')
@@ -97,8 +86,13 @@ var startObservable = function(socket){
   
 }
 
-
-
+io.on('connection', function (socket){
+  console.log('connected socket.io')
+  socket.on('subscribeSurvey', function (){
+    startObservable(socket)
+  })
+  
+})
 
 
 
