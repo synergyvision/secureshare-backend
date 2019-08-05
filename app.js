@@ -71,11 +71,7 @@ app.get("/", function(req,res){
 });
 
 var io = require('socket.io')(server);
-
-io.on('connection', function (socket){
-  console.log('someone connected')
-  app.set("io", socket);
-})
+app.set("io", socket);
 
 server.listen(process.env.PORT, function() {
   console.log("Express app started on heroku server");
