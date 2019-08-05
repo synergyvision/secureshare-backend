@@ -15,7 +15,7 @@ api.use(function(req, res, next) {
   });
 
 let io = api.get("socket");
-
+console.log(io);
 var getUsername = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         name = snapshot.get('name');
