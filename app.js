@@ -77,6 +77,7 @@ var startObservable = function(socket){
   ref = firestore.collection('Surveys');
   console.log('started observable')
   var observer = ref.onSnapshot(querySnapshot => {
+    let changes = querySnapshot.docChanges();
     changes.forEach(changes => {
       if (changes.type == 'added'){
         socket.emmit('updateSurveys', {update: true})
