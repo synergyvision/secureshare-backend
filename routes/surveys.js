@@ -14,7 +14,7 @@ api.use(function(req, res, next) {
     next();
   });
 
-let io = api.get("io");
+let io = api.get("socket");
 
 var getUsername = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
@@ -32,7 +32,6 @@ var getUsername = function (id){
 var startObservable = function(){
   ref = admin.firestore().collection('Surveys');
   var observer = ref.onSnapshot(querySnapshot => {
-    console.log(`Received query snapshot of size ${querySnapshot.size}`);
     io.emmit('updateSurveys',function (){
       console.log('emmited update survey event')
     });
