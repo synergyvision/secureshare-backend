@@ -80,7 +80,7 @@ var startObservable = function(socket){
     let changes = querySnapshot.docChanges();
     changes.forEach(changes => {
       if (changes.type == 'added'){
-        socket.emmit('updateSurveys', {update: true})
+        socket.emit('updateSurveys', {update: true})
       }
     })
   }, err => {
