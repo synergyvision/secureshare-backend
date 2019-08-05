@@ -77,7 +77,7 @@ var startObservable = function(socket){
   ref = firestore.collection('Surveys');
   console.log('started observable')
   var observer = ref.onSnapshot(querySnapshot => {
-    socket.emmit('updateSurveys',function (){
+    socket.emit('updateSurveys',function (){
       console.log('emmited update survey event')
     });
   }, err => {
