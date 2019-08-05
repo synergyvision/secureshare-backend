@@ -71,7 +71,35 @@ app.get("/", function(req,res){
 });
 
 var io = require('socket.io')(server);
-app.set("io", socket);
+app.set('io',io);
+
+
+
+io.on('connection', function (socket){
+  socket.on('subscribeSurvey', function (){
+    startObservable(socket)
+  })
+  
+})
+
+
+var startObservable = function(socket){
+  ref = firestore.collection('Surveys');
+  var observer = ref.onSnapshot(querySnapshot => {
+    socket.emmit('updateSurveys',function (){
+      console.log('emmited update survey event')
+    });
+  }, err => {
+    console.log(`Encountered error: ${err}`);
+  });
+  
+}
+
+
+
+
+
+
 
 server.listen(process.env.PORT, function() {
   console.log("Express app started on heroku server");

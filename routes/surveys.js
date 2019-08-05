@@ -14,8 +14,8 @@ api.use(function(req, res, next) {
     next();
   });
 
-var io = api.get("io");
-
+let io = api.get("socket");
+console.log
 var getUsername = function (id){
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         name = snapshot.get('name');
@@ -28,28 +28,6 @@ var getUsername = function (id){
         })
     })
 }
-
-
-var startObservable = function(socket){
-  ref = admin.firestore().collection('Surveys');
-  var observer = ref.onSnapshot(querySnapshot => {
-    socket.emmit('updateSurveys',function (){
-      console.log('emmited update survey event')
-    });
-  }, err => {
-    console.log(`Encountered error: ${err}`);
-  });
-  
-}
-
-
-
-io.on('connection', function (socket){
-    socket.on('subscribeSurvey', function (){
-      startObservable(socket)
-    })
-})
-
 
 api.get('/', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
