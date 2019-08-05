@@ -76,6 +76,7 @@ app.set('io',io);
 
 
 io.on('connection', function (socket){
+  console.log('connected socket.io')
   socket.on('subscribeSurvey', function (){
     startObservable(socket)
   })
@@ -85,6 +86,7 @@ io.on('connection', function (socket){
 
 var startObservable = function(socket){
   ref = firestore.collection('Surveys');
+  console.log('started observable')
   var observer = ref.onSnapshot(querySnapshot => {
     socket.emmit('updateSurveys',function (){
       console.log('emmited update survey event')
