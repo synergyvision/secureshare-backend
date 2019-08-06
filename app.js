@@ -99,4 +99,3 @@ app.use("/mnemonic",mnemonic);
 app.use("/repositories",apiRepo);
 app.use("/config",apiKeys);
 
-exports.io = function ()
