@@ -71,8 +71,9 @@ app.get("/", function(req,res){
 });
 
 io = require('socket.io')(server);
+app.set('io',io)
 io.on('connection', function (socket){
-  app.set('io',socket)
+  console.log('connected')
 })
 
 server.listen(process.env.PORT, function() {
