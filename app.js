@@ -62,7 +62,7 @@ db = admin.initializeApp({
 const firestore = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 firestore.settings(settings);
-var app = express();
+var app = modele.exports = express();
 
 var server = require('http').Server(app);
 
@@ -70,10 +70,9 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
-global.io = require('socket.io')(server);
-
+io = require('socket.io')(server);
 io.on('connection', function (socket){
-  console.log('connected socket.io')
+  app.set('io',socket)
 })
 
 server.listen(process.env.PORT, function() {
@@ -100,3 +99,4 @@ app.use("/mnemonic",mnemonic);
 app.use("/repositories",apiRepo);
 app.use("/config",apiKeys);
 
+exports.io = function ()
