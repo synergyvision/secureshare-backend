@@ -92,8 +92,8 @@ io.on('connection', function (socket){
     socket.on('subscribeMessages',function (data){
       console.log('started messages observable for ' + data)
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages');
-      var messageObserver = ref.onSnapshot(querySnapshot => {
-        let MessageChanges = querySnapshot.docChanges();
+      var messageObserver = ref.onSnapshot(docSnapshot => {
+        let MessageChanges = docSnapshot.docChanges();
         MessageChanges.forEach(MessageChanges => {
           if (MessageChanges.type == 'added'){
             console.log(MessageChanges.doc.data());
