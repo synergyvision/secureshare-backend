@@ -74,7 +74,7 @@ io = require('socket.io')(server);
 
 io.on('connection', function (socket){
 
-    socket.on('subscribeSurvey', function (data){
+    /*socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
       console.log('started survey observable for ' + data)
       var observer = ref.onSnapshot(querySnapshot => {
@@ -87,18 +87,16 @@ io.on('connection', function (socket){
       }, err => {
         console.log(`Encountered error: ${err}`);
       });
-    })
+    })*/
 
     socket.on('subscribeMessages',function (data){
       console.log('started messages observable for ' + data)
-      messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages');
-      var messageObserver = ref.onSnapshot(docSnapshot => {
+      messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages').where('tray','==','inbox');
+      var messageObserver = messagesRef.onSnapshot(docSnapshot => {
         let MessageChanges = docSnapshot.docChanges();
         MessageChanges.forEach(MessageChanges => {
           if (MessageChanges.type == 'added'){
-            if (MessageChanges.doc.get('tray') == 'inbox'){
-              socket.emit('updateMessages');
-            }
+              socket.emit('updateMessages');          
           }
         })
       }, err => {
