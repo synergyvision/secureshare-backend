@@ -95,7 +95,7 @@ io.on('connection', function (socket){
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
           if (changes.type == 'added'){
-            if (change.doc.get('tray') == 'inbox'){
+            if (changes.doc.get('tray') == 'inbox'){
               socket.emit('updateMessages');
             }
           }
