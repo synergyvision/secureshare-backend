@@ -70,12 +70,10 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
-var io = require('socket.io')(server);
+global.io = require('socket.io')(server);
 
 io.on('connection', function (socket){
   console.log('connected socket.io')
-  global.io = socket;
-  
 })
 
 server.listen(process.env.PORT, function() {
