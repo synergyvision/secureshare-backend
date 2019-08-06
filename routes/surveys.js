@@ -2,7 +2,7 @@ var express = require("express");
 var firebase= require("firebase");
 var admin = require("firebase-admin");
 var bodyParser = require("body-parser");
-var io = require('../app');
+var socket = require('../app');
 
 var api = express.Router();
 
@@ -557,7 +557,7 @@ api.get('/:surveyId', function (req,res){
   })   
 })
 
-let io = io.get('io')
+let io = socket.get('io')
 
 io.on('connection', function (socket){
   socket.on('subscribeSurvey', function (){
