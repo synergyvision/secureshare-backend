@@ -93,10 +93,10 @@ io.on('connection', function (socket){
       console.log('started messages observable for ' + data)
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages');
       var messageObserver = ref.onSnapshot(querySnapshot => {
-        let changes = querySnapshot.docChanges();
-        changes.forEach(changes => {
+        let MessageChanges = querySnapshot.docChanges();
+        MessageChanges.forEach(MessageChanges => {
           if (changes.type == 'added'){
-            console.log(changes.doc.data());
+            console.log(MessageChanges.doc.data());
             if (changes.doc.get('tray') == 'inbox'){
               socket.emit('updateMessages');
             }
