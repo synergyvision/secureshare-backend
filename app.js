@@ -90,11 +90,14 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeMessages',function (data){
+      console.log(data)
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages');
       var messageObserver = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
           if (changes.type == 'added'){
+            console.log(changes.doc.data());
+            console.log(changes.doc.get('tray'))
             if (changes.doc.get('tray') == 'inbox'){
               socket.emit('updateMessages');
             }
