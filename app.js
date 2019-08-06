@@ -62,7 +62,7 @@ db = admin.initializeApp({
 const firestore = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 firestore.settings(settings);
-var app = modele.exports = express();
+var app = express();
 
 var server = require('http').Server(app);
 
