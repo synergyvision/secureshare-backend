@@ -76,7 +76,7 @@ io.on('connection', function (socket){
 
     socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
-      console.log('started observable for' + data)
+      console.log('started observable for ' + data)
       var observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
@@ -89,6 +89,21 @@ io.on('connection', function (socket){
       });
     })
 
+    socket.on('subscribeMessages',function (data){
+      messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages');
+      var messageObserver = ref.onSnapshot(querySnapshot => {
+        let changes = querySnapshot.docChanges();
+        changes.forEach(changes => {
+          if (changes.type == 'added'){
+            if (change.doc.get('tray') == 'inbox'){
+              socket.emit('updateMessages');
+            }
+          }
+        })
+      }, err => {
+        console.log(err)
+      });
+    })
 
 })
 
