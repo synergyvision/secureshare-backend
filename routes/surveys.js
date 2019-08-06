@@ -557,24 +557,19 @@ api.get('/:surveyId', function (req,res){
 })
 
 
-
-
-exports.foo = (req,res) => {
-  const io = req.app.get('io');
-  io.on('subscribeSurvey', function (){
-    ref = admin.firestore().collection('Surveys')
-    console.log('started observable')
-    var observer = ref.onSnapshot(querySnapshot => {
-      let changes = querySnapshot.docChanges();
-      changes.forEach(changes => {
-        if (changes.type == 'added'){
-          socket.emit('updateSurveys', {update: true})
-        }
-      })
-    }, err => {
-      console.log(`Encountered error: ${err}`);
-    });
-  })
-}
+io.on('subscribeSurvey', function (){
+  ref = admin.firestore().collection('Surveys')
+  console.log('started observable')
+  var observer = ref.onSnapshot(querySnapshot => {
+    let changes = querySnapshot.docChanges();
+    changes.forEach(changes => {
+      if (changes.type == 'added'){
+        socket.emit('updateSurveys', {update: true})
+      }
+    })
+  }, err => {
+    console.log(`Encountered error: ${err}`);
+  });
+})
 
 module.exports  = api;

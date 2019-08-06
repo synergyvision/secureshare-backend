@@ -74,8 +74,7 @@ var io = require('socket.io')(server);
 
 io.on('connection', function (socket){
   console.log('connected socket.io')
-  app.set('io',socket);
-  
+  global.io = socket;
   
 })
 
