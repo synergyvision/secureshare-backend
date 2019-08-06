@@ -71,10 +71,28 @@ app.get("/", function(req,res){
 });
 
 io = require('socket.io')(server);
-app.set('io',io)
+
 io.on('connection', function (socket){
-  console.log('connected')
+
+    socket.on('subscribeSurvey', function (data){
+      ref = admin.firestore().collection('Surveys')
+      console.log('started observable for' + data)
+      var observer = ref.onSnapshot(querySnapshot => {
+        let changes = querySnapshot.docChanges();
+        changes.forEach(changes => {
+          if (changes.type == 'added'){
+            socket.emit('updateSurveys', {update: true})
+          }
+        })
+      }, err => {
+        console.log(`Encountered error: ${err}`);
+      });
+    })
+
+
 })
+
+
 
 server.listen(process.env.PORT, function() {
   console.log("Express app started on heroku server");
