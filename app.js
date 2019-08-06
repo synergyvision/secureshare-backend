@@ -95,9 +95,9 @@ io.on('connection', function (socket){
       var messageObserver = ref.onSnapshot(querySnapshot => {
         let MessageChanges = querySnapshot.docChanges();
         MessageChanges.forEach(MessageChanges => {
-          if (changes.type == 'added'){
+          if (MessageChanges.type == 'added'){
             console.log(MessageChanges.doc.data());
-            if (changes.doc.get('tray') == 'inbox'){
+            if (MessageChanges.doc.get('tray') == 'inbox'){
               socket.emit('updateMessages');
             }
           }
