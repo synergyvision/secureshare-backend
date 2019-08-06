@@ -76,12 +76,11 @@ io.on('connection', function (socket){
     console.log('new user connection')
     socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
-      console.log('started survey observable for ' + data)
       var observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
           if (changes.type == 'added'){
-            socket.emit('updateSurveys', {update: true})
+            socket.emit('updateSurveys')
           }
         })
       }, err => {
@@ -117,6 +116,10 @@ io.on('connection', function (socket){
         console.log(err)
       });
     })
+
+    socket.on('disconnected', function(data) {
+      console.log('user disconnected')
+  });  
 })
 
 
