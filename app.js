@@ -96,7 +96,6 @@ io.on('connection', function (socket){
         let MessageChanges = docSnapshot.docChanges();
         MessageChanges.forEach(MessageChanges => {
           if (MessageChanges.type == 'added'){
-            console.log(MessageChanges.doc.data());
             if (MessageChanges.doc.get('tray') == 'inbox'){
               socket.emit('updateMessages');
             }
