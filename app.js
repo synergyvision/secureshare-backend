@@ -103,7 +103,6 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeRequest', function (data){
-      console.log('iniated observable for request ' + data);
       var requestRef = admin.firestore().collection('Requests').where('id_to','==',data).where('status','==',false);
       var RequestObserver = requestRef.onSnapshot(querySnapshot => {
         let newRequest = querySnapshot.docChanges();
@@ -117,11 +116,27 @@ io.on('connection', function (socket){
       });
     })
 
+    socket.on('subscribeNewChats', function (data){
+      console.log('iniated observable for chats ' + data);
+      var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats').get()
+      var chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
+        let newChat = querySnapshot.docChanges();
+        newChat.forEach( newChat => {
+          if (newChat.type == 'added'){
+            socket.emit('updateChats');
+          }
+        })
+      }, err => {
+        console.log(err)
+      });
+    })
+
     socket.on('disconnected', function(data) {
       console.log('user disconnected')
       RequestObserver();
       messageObserver();
       observer();
+      chatsOberserver();
   });  
 })
 
