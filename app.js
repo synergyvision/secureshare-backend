@@ -119,6 +119,9 @@ io.on('connection', function (socket){
 
     socket.on('disconnected', function(data) {
       console.log('user disconnected')
+      RequestObserver();
+      messageObserver();
+      observer();
   });  
 })
 

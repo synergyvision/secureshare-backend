@@ -575,25 +575,16 @@ api.get('/:userid/contacts', function (req,res) {
     }) 
 })
 
-var getChatInfo = function (id) {
-    db = admin.firestore();
-    return db.collection('Chats').doc(id).get().then(function (doc){
-        return doc.data()
-    })
-}
-
 var getChats = async (uid) => {
     db = admin.firestore();
     chats = [];
     var i =0;
-    chatsCollection = await db.collection('Users').doc(uid).collection('Chats').get()
+    chatsCollection = await db.collection('Chats').get().where(['members.'+uid],'==', true)
     for (doc of chatsCollection.docs){
-        data = await getChatInfo(doc.id);
+        data = doc.data();
         chats.push(data);
     }
     return chats;
-
-    
 
 }
 
