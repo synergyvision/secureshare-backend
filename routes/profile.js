@@ -581,6 +581,7 @@ var getChats = async (uid) => {
     var i =0;
     chatsCollection = await db.collection('Chats').get();
     for await (doc of chatsCollection.docs){
+        members = doc.get('members')
         if (members[uid]){
             data = doc.data();
             chats.push(data);
