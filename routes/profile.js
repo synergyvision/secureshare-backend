@@ -580,7 +580,7 @@ var getChats = async (uid) => {
     chats = [];
     var i =0;
     chatsCollection = await db.collection('Chats').where('members.'+uid,'==', true).get();
-    for (doc of chatsCollection.docs){
+    for await (doc of chatsCollection.docs){
         data = doc.data();
         chats.push(data);
     }
