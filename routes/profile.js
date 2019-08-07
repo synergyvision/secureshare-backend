@@ -579,8 +579,10 @@ var getChats = async (uid) => {
     db = admin.firestore();
     chats = [];
     var i =0;
-    chatsCollection = await db.collection('Chats').where('members.{uid}','==', true).get();
+    chatsCollection = await db.collection('Chats').get();
     for await (doc of chatsCollection.docs){
+        members = doc.get('members')
+        console.log(members)
         data = doc.data();
         chats.push(data);
     }
