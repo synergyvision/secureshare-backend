@@ -83,9 +83,8 @@ io.on('connection', function (socket){
        observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
-          console.log(changes)
           if (changes.type == 'added'){
-            socket.emit('updateSurveys')
+            socket.emit('updateSurveys',changes.doc.id)
           }
         })
       }, err => {
@@ -134,6 +133,10 @@ io.on('connection', function (socket){
       }, err => {
         console.log(err)
       });
+    })
+
+    socket.on('subscribeMessages', function (data){
+
     })
 
     socket.on('disconnected', function(data) {
