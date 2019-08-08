@@ -81,6 +81,7 @@ io.on('connection', function (socket){
     console.log('new user connection')
 
     socket.on('subscribeSurvey', function (data){
+      console.log('survey observable started');
       ref = admin.firestore().collection('Surveys')
        observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
@@ -95,6 +96,7 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeMessages',function (data){
+      console.log('messages observable started');
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages').where('tray','==','inbox');
        messageObserver = messagesRef.onSnapshot(docSnapshot => {
         let MessageChanges = docSnapshot.docChanges();
@@ -109,6 +111,7 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeRequest', function (data){
+      console.log('requests observable started');
       var requestRef = admin.firestore().collection('Requests').where('id_to','==',data).where('status','==',false);
        RequestObserver = requestRef.onSnapshot(querySnapshot => {
         let newRequest = querySnapshot.docChanges();
@@ -123,6 +126,7 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeNewChats', function (data){
+      console.log('chats observable started');
       var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats')
        chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
         let newChat = querySnapshot.docChanges();
@@ -137,6 +141,7 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeChatMessages', function (){
+      console.log('chats observable observable started');
       var chatMessagesRef = admin.firestore().collection('Chats');
       chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
          let newChatMessage = querySnapshot.docChanges();
