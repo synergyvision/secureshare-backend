@@ -77,6 +77,7 @@ io.on('connection', function (socket){
     var observer = null;
     var RequestObserver = null;
     var chatsOberserver = null;
+    var chatMessagesObserver = null;
     console.log('new user connection')
     socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
@@ -127,15 +128,7 @@ io.on('connection', function (socket){
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
           if (newChat.type == 'added'){
-            admin.firestore().collection('Chats').doc(newChat.doc.id).get().then(doc => {
-              chat = {
-                id: newChat.doc.id,
-                last_modified: doc.get('last_modified')
-              }
-              socket.emit('updateChats', chat);
-            }).catch(function (error){
-              console.log(error)
-            })
+              socket.emit('updateChats', newChat.doc.id);
           }
         })
       }, err => {
@@ -143,8 +136,22 @@ io.on('connection', function (socket){
       });
     })
 
-    socket.on('subscribeMessages', function (data){
-
+    socket.on('subscribeChatMessages', function (){
+      var chatMessagesRef = admin.firestore().collection('Chats');
+      chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
+        let newChatMessage = querySnapshot.docChanges();
+        newChatMessage.forEach(newChatMessage => {
+          if (newChatMessage.type == 'modified'){
+            chat = {
+              chat: newChatMessage.doc.id,
+              last_modified: newChatMessage.doc.get('last_modified')
+            }
+            socket.emit('newChatMessages',chat)
+          }
+        })
+      }, err => {
+        console.log(err)
+      });
     })
 
     socket.on('disconnected', function(data) {
@@ -153,6 +160,7 @@ io.on('connection', function (socket){
       observer();
       RequestObserver();
       chatsOberserver();
+      chatMessagesObserver();
     });  
 })
 
