@@ -104,7 +104,8 @@ api.post('/:userid', function (req, res){
             data = {
                 title: title,
                 created: sent,
-                members: members
+                members: members,
+                last_modified: sent
             }
             ref.add(data).then(function (doc){
                 ref.doc(doc.id).update({chatID: doc.id});
