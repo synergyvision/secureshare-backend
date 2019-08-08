@@ -83,6 +83,8 @@ api.post('/:userid/:chatid/messages', function (req,res){
                         date_sent: date_sent
                     }
                 }
+                modified = Date.now()
+                admin.firestore().collection('Chats').doc(chat).update({last_modified: modified});
                 for (i = 0; i < recipients.length;i++){
                     admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).set({status: true})
                     var post = admin.firestore().collection('Users').doc(recipients[i]).collection('Chats').doc(chat).collection('Messages');
