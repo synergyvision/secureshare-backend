@@ -79,6 +79,7 @@ io.on('connection', function (socket){
     var chatsOberserver = null;
     var chatMessagesObserver = null;
     console.log('new user connection')
+
     socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
        observer = ref.onSnapshot(querySnapshot => {
@@ -136,6 +137,7 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeChatMessages', function (){
+      console.log('here')
       var chatMessagesRef = admin.firestore().collection('Chats');
       chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
          let newChatMessage = querySnapshot.docChanges();
