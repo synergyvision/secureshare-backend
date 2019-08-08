@@ -73,7 +73,6 @@ app.get("/", function(req,res){
 io = require('socket.io')(server);
 
 io.on('connection', function (socket){
-  console.log(socket.id)
     var messageObserver = null;
     var observer = null;
     var RequestObserver = null;
@@ -84,6 +83,7 @@ io.on('connection', function (socket){
        observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
+          console.log(changes)
           if (changes.type == 'added'){
             socket.emit('updateSurveys')
           }
