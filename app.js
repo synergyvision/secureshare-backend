@@ -127,12 +127,15 @@ io.on('connection', function (socket){
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
           if (newChat.type == 'added'){
-            console.log(newChat.doc.data())
-            chat = {
-              id: newChat.doc.id,
-              last_modified: newChat.doc.get('last_modified')
-            }
-            socket.emit('updateChats', chat);
+            admin.firestore().collection('Chats').doc(newChat.doc.id).get().then(doc => {
+              chat = {
+                id: newChat.doc.id,
+                last_modified: doc.get('last_modified')
+              }
+              socket.emit('updateChats', chat);
+            }).catch(function (error){
+              console.log(error)
+            })
           }
         })
       }, err => {
