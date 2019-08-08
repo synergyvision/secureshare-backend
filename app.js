@@ -127,6 +127,7 @@ io.on('connection', function (socket){
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
           if (newChat.type == 'added'){
+            console.log(newChat.doc.data())
             chat = {
               id: newChat.doc.id,
               last_modified: newChat.doc.get('last_modified')
