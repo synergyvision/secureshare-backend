@@ -73,10 +73,14 @@ app.get("/", function(req,res){
 io = require('socket.io')(server);
 
 io.on('connection', function (socket){
+    var messageObserver = null;
+    var observer = null;
+    var RequestObserver = null;
+    var chatsOberserver = null;
     console.log('new user connection')
     socket.on('subscribeSurvey', function (data){
       ref = admin.firestore().collection('Surveys')
-      var observer = ref.onSnapshot(querySnapshot => {
+       observer = ref.onSnapshot(querySnapshot => {
         let changes = querySnapshot.docChanges();
         changes.forEach(changes => {
           if (changes.type == 'added'){
@@ -90,7 +94,7 @@ io.on('connection', function (socket){
 
     socket.on('subscribeMessages',function (data){
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages').where('tray','==','inbox');
-      var messageObserver = messagesRef.onSnapshot(docSnapshot => {
+       messageObserver = messagesRef.onSnapshot(docSnapshot => {
         let MessageChanges = docSnapshot.docChanges();
         MessageChanges.forEach(MessageChanges => {
           if (MessageChanges.type == 'added'){
@@ -104,7 +108,7 @@ io.on('connection', function (socket){
 
     socket.on('subscribeRequest', function (data){
       var requestRef = admin.firestore().collection('Requests').where('id_to','==',data).where('status','==',false);
-      var RequestObserver = requestRef.onSnapshot(querySnapshot => {
+       RequestObserver = requestRef.onSnapshot(querySnapshot => {
         let newRequest = querySnapshot.docChanges();
         newRequest.forEach(newRequest =>{
           if (newRequest.type == 'added'){
@@ -119,7 +123,7 @@ io.on('connection', function (socket){
     socket.on('subscribeNewChats', function (data){
       console.log('iniated observable for chats ' + data);
       var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats')
-      var chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
+       chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
           if (newChat.type == 'added'){
@@ -133,7 +137,11 @@ io.on('connection', function (socket){
 
     socket.on('disconnected', function(data) {
       console.log('user disconnected')
-  });  
+      messageObserver();
+      observer();
+      RequestObserver();
+      chatsOberserver();
+    });  
 })
 
 
