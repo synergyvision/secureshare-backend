@@ -118,7 +118,7 @@ io.on('connection', function (socket){
 
     socket.on('subscribeNewChats', function (data){
       console.log('iniated observable for chats ' + data);
-      var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats').get()
+      var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats')
       var chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
