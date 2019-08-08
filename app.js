@@ -129,7 +129,7 @@ io.on('connection', function (socket){
           if (newChat.type == 'added'){
             chat = {
               id: newChat.doc.id,
-              last_modified: newChat.doc.last_modified 
+              last_modified: newChat.doc.get('last_modified')
             }
             socket.emit('updateChats', chat);
           }
