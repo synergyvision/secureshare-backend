@@ -137,7 +137,6 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeChatMessages', function (){
-      console.log('here')
       var chatMessagesRef = admin.firestore().collection('Chats');
       chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
          let newChatMessage = querySnapshot.docChanges();
@@ -147,7 +146,6 @@ io.on('connection', function (socket){
               chat: newChatMessage.doc.id,
               last_modified: newChatMessage.doc.get('last_modified')
             }
-            console.log(chat);
             socket.emit('newChatMessages',chat)
           }
         })
