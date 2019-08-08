@@ -127,7 +127,11 @@ io.on('connection', function (socket){
         let newChat = querySnapshot.docChanges();
         newChat.forEach( newChat => {
           if (newChat.type == 'added'){
-            socket.emit('updateChats', newChat.doc.id);
+            chat = {
+              id: newChat.doc.id,
+              last_modified: newChat.doc.last_modified 
+            }
+            socket.emit('updateChats', chat);
           }
         })
       }, err => {
