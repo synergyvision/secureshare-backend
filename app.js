@@ -122,7 +122,6 @@ io.on('connection', function (socket){
     })
 
     socket.on('subscribeNewChats', function (data){
-      console.log('iniated observable for chats ' + data);
       var chatsRef = admin.firestore().collection('Users').doc(data).collection('Chats')
        chatsOberserver = chatsRef.onSnapshot(querySnapshot => {
         let newChat = querySnapshot.docChanges();
@@ -139,13 +138,14 @@ io.on('connection', function (socket){
     socket.on('subscribeChatMessages', function (){
       var chatMessagesRef = admin.firestore().collection('Chats');
       chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
-        let newChatMessage = querySnapshot.docChanges();
+         let newChatMessage = querySnapshot.docChanges();
         newChatMessage.forEach(newChatMessage => {
           if (newChatMessage.type == 'modified'){
             chat = {
               chat: newChatMessage.doc.id,
               last_modified: newChatMessage.doc.get('last_modified')
             }
+            console.log(chat);
             socket.emit('newChatMessages',chat)
           }
         })
