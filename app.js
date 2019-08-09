@@ -143,9 +143,12 @@ io.on('connection', function (socket){
     socket.on('subscribeChatMessages', function (){
       console.log('chats observable observable started');
       var chatMessagesRef = admin.firestore().collection('Chats');
+      console.log('here');
       chatMessagesObserver = chatMessagesRef.onSnapshot( querySnapshot => {
          let newChatMessage = querySnapshot.docChanges();
+         console.log(newChatMessage)
         newChatMessage.forEach(newChatMessage => {
+          console.log(newChatMessage.type);
           if (newChatMessage.type == 'modified'){
             chat = {
               chat: newChatMessage.doc.id,
