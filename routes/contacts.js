@@ -20,6 +20,7 @@ var requestInfo =  function (user_id,request_id){
             id: user_id,
             name: snapshot.get('name'),
             lastname: snapshot.get('lastname'),
+            picture: snapshot.get('profileUrl'),
             requestId: request_id
         }
         return info;
