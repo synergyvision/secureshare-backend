@@ -14,7 +14,13 @@ api.use(function(req, res, next) {
     next();
   });
 
-
+var getUsername = function(id){
+    return admin.firestore().collection('Users').doc(id).get().then(function (snap){
+        return snap.get('username') 
+    }).catch(function (error){
+        console.log(error)
+    })
+}
 
 api.get('/:userid/chat/:chatid', function (req,res){
     uid = req.params.userid;
@@ -23,11 +29,13 @@ api.get('/:userid/chat/:chatid', function (req,res){
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         messages = [];
         if (decodedToken.uid == uid){
-            admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(function (snapshot){
+            admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(async (snapshot )=>{
                 snapshot.forEach( doc =>{
+                    sender = await getUsername(doc.get('id_sender'));
                     message = {
                         data: doc.data(),
-                        id: doc.id
+                        id: doc.id,
+                        sender: sender
                     }
                     messages.push(message)
                 })
