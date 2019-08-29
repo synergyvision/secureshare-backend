@@ -26,8 +26,7 @@ api.get('/:userid/chat/:chatid', function (req,res){
                 snapshot.forEach(doc =>{
                     message = {
                         data: doc.data(),
-                        id: doc.id,
-                        sender: sender
+                        id: doc.id
                     }
                     messages.push(message)
                 })
