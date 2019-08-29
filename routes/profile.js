@@ -581,15 +581,13 @@ var getChats = async (uid) => {
     var i =0;
     chatsCollection = await db.collection('Users').doc(uid).collection('Chats').get();
     for await (doc of chatsCollection.docs){
-        db.collection('Chats').doc(doc.id).get().then(function (snap){
+        await db.collection('Chats').doc(doc.id).get().then(function (snap){
             data = snap.data();
             chats.push(data);
-            console.log(chats)
         }).catch(function (errot){
             console.log(error)
         })
     }
-    console.log(chats + 'final')
     return chats;
 
 }
