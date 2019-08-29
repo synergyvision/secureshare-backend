@@ -634,6 +634,7 @@ api.delete('/:userid/chats/:chatid', function (req,res){
                 snapshot.forEach( doc =>{
                     admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).collection('Messages').doc(doc.id).delete();                    
                 })
+                admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chatId).delete()
                 res.status(200).json({
                     status: 200,
                     message: 'User copy of messages deleted'
