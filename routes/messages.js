@@ -30,7 +30,7 @@ api.get('/:userid/chat/:chatid', function (req,res){
         messages = [];
         if (decodedToken.uid == uid){
             admin.firestore().collection('Users').doc(uid).collection('Chats').doc(chat).collection('Messages').get().then(async (snapshot )=>{
-                snapshot.forEach( doc =>{
+                snapshot.forEach(async doc =>{
                     sender = await getUsername(doc.get('id_sender'));
                     message = {
                         data: doc.data(),
