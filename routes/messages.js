@@ -72,14 +72,16 @@ api.post('/:userid/:chatid/messages', function (req,res){
                         id_sender: sender,
                         content: content,
                         date_sent: date_sent,
-                        response_to: req.body.response_to
+                        response_to: req.body.response_to,
+                        username: req.body.username
                     }
 
                 }else{
                     var newMessage = {
                         id_sender: sender,
                         content: content,
-                        date_sent: date_sent
+                        date_sent: date_sent,
+                        username: req.body.username
                     }
                 }
                 modified = Date.now()
