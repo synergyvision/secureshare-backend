@@ -579,13 +579,14 @@ var getChats = async (uid) => {
     db = admin.firestore();
     chats = [];
     var i =0;
-    chatsCollection = await db.collection('Chats').get();
+    chatsCollection = await db.collection('Users').doc(uid).collection('Chats').get();
     for await (doc of chatsCollection.docs){
-        members = doc.get('members')
-        if (members[uid]){
-            data = doc.data();
+        db.collection('chats').doc(doc.id).get().then(function (snap){
+            data = snap.data();
             chats.push(data);
-        }
+        }).catch(function (errot){
+            console.log(error)
+        })
     }
     return chats;
 
