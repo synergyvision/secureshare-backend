@@ -584,10 +584,12 @@ var getChats = async (uid) => {
         db.collection('chats').doc(doc.id).get().then(function (snap){
             data = snap.data();
             chats.push(data);
+            console.log(chats)
         }).catch(function (errot){
             console.log(error)
         })
     }
+    console.log(chats + 'final')
     return chats;
 
 }
