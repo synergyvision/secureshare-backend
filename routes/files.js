@@ -3,6 +3,7 @@ var format = require('util').format;
 var firebase= require("firebase");
 var admin = require("firebase-admin");
 const Multer = require('multer');
+var stream = require('stream');
 
 var bodyParser = require("body-parser");
 
@@ -87,7 +88,6 @@ api.post('/images', multer.single('file'), (req, res) => {
     if (decodedToken){
       uid = req.body.uid;
       var bucket = admin.storage().bucket();
-      console.log(req.file)
       var blob = bucket.file(req.file.originalname)
       var blobStream = blob.createWriteStream();
 
@@ -111,6 +111,60 @@ api.post('/images', multer.single('file'), (req, res) => {
       });
     
       blobStream.end(req.file.buffer);
+
+    }else{
+      res.status(401).json({
+        status: 401,
+        message: 'You need to log in to access content'
+      })
+    }
+  }).catch(function (error){
+      res.status(401).json({
+        status: error.code,
+        message: error.message
+      })
+   })
+})
+
+api.post('/images64', function (req, res){
+  var encoded = req.headers.authorization.split(' ')[1]
+  admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    if (decodedToken){
+      uid = req.body.uid;
+
+      var stream = require('stream');
+      var bufferStream = new stream.PassThrough();
+      bufferStream.end(Buffer.from(req.body.file, 'base64'));
+      var bucket = admin.storage().bucket();
+      var file = bucket.file(uid + '-profile.jpg');
+
+      bufferStream.pipe(file.createWriteStream({
+        metadata: {
+            contentType: 'image/jpeg',
+            metadata: {
+              custom: 'metadata'
+            }
+          },
+          public: true,
+          validation: "md5"
+        }))
+       .on('error', function(err) {
+        console.log(err)
+       })
+        .on('finish', function() {
+          myFile = admin.storage().bucket().file(uid + '-profile.jpg');
+          myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
+            const signedUrl = urls[0]
+            admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
+                res.status(200).json({
+                  status: 200,
+                  message: 'Image already uploaded retrieved link',
+                  link: signedUrl
+                })       
+          }).catch(function (error){
+            console.log(error);
+          })
+      });
 
     }else{
       res.status(401).json({
