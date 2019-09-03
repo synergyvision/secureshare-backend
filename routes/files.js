@@ -131,7 +131,7 @@ api.post('/images64', function (req, res){
   admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken){
       uid = req.body.uid;
-      admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
+      admin.firestore().collection('Users').doc(uid).update({profileUrl: req.body.file});
           res.status(200).json({
             status: 200,
             message: 'Image already uploaded retrieved link',
