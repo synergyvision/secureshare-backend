@@ -131,38 +131,12 @@ api.post('/images64', function (req, res){
   admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken){
       uid = req.body.uid;
-      var bufferStream = new stream.PassThrough();
-      bufferStream.end(Buffer.from(req.body.file, 'base64'));
-      var bucket = admin.storage().bucket();
-      var file = bucket.file(uid + '-profile.jpg');
-      bufferStream.pipe(file.createWriteStream({
-        metadata: {
-            contentType: 'image/jpeg',
-            metadata: {
-              custom: 'metadata'
-            }
-          },
-          public: true,
-          validation: "md5"
-        }))
-       .on('error', function(err) {
-        console.log(err)
-       })
-        .on('finish', function() {
-          myFile = admin.storage().bucket().file(uid + '-profile.jpg');
-          myFile.getSignedUrl({action: 'read', expires: '03-09-2491'}).then(urls => {
-            const signedUrl = urls[0]
-            admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
-                res.status(200).json({
-                  status: 200,
-                  message: 'Image already uploaded retrieved link',
-                  link: signedUrl
-                })       
-          }).catch(function (error){
-            console.log(error);
-          })
-      });
-
+      admin.firestore().collection('Users').doc(uid).update({profileUrl: signedUrl});
+          res.status(200).json({
+            status: 200,
+            message: 'Image already uploaded retrieved link',
+            link: signedUrl
+          })     
     }else{
       res.status(401).json({
         status: 401,
