@@ -32,6 +32,7 @@ api.post('/files', multer.single('file'), (req, res) => {
     if (decodedToken){
       uid = req.body.uid;
       var bucket = admin.storage().bucket();
+      console.log(req.file)
       var blob = bucket.file(req.file.originalname)
       var blobStream = blob.createWriteStream();
 
