@@ -131,6 +131,7 @@ api.post('/images64', function (req, res){
   admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
     if (decodedToken){
       uid = req.body.uid;
+      console.log(uid)
       console.log(req.body.file)
       var bufferStream = new stream.PassThrough();
       bufferStream.end(Buffer.from(req.body.file, 'base64'));
