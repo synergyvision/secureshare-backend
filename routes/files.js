@@ -134,8 +134,7 @@ api.post('/images64', function (req, res){
       admin.firestore().collection('Users').doc(uid).update({profileUrl: req.body.file});
           res.status(200).json({
             status: 200,
-            message: 'Image already uploaded retrieved link',
-            link: signedUrl
+            message: 'Image already uploaded retrieved link'
           })     
     }else{
       res.status(401).json({
