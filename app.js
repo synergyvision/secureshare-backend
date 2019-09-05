@@ -168,7 +168,7 @@ io.on('connection', function (socket){
       chatsOberserver();
       chatMessagesObserver();
     });  
-})/*
+})*/
 
 
 
