@@ -167,8 +167,8 @@ io.on('connection', function (socket){
       RequestObserver();
       chatsOberserver();
       chatMessagesObserver();
-    });  */
-})
+    });  
+})/*
 
 
 
