@@ -70,7 +70,7 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
-io = require('socket.io')(server);
+/*io = require('socket.io')(server);
 
 io.on('connection', function (socket){
     var messageObserver = null;
@@ -167,7 +167,7 @@ io.on('connection', function (socket){
       RequestObserver();
       chatsOberserver();
       chatMessagesObserver();
-    });  
+    });  */
 })
 
 
