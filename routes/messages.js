@@ -195,6 +195,7 @@ api.post('/:userid', function (req,res){
             content = req.body.content;
             recipient = req.body.recipient;
             publish = req.body.publish;
+            keys = JSON.parse(req.body.userKeys);
             var message = {
                 sender: sender,
                 id_sender: id_sender,
@@ -202,7 +203,8 @@ api.post('/:userid', function (req,res){
                 content: content,
                 status: 'unread',
                 tray: 'inbox',
-                publish: publish
+                publish: publish,
+                keys: keys
             }
             admin.firestore().collection('Users').doc(recipient).collection('Messages').add(message).then( async () =>{
                 recipient_user = await getUsername(recipient);
@@ -212,7 +214,8 @@ api.post('/:userid', function (req,res){
                     tray: 'outbox',
                     publish: publish,
                     recipient: recipient,
-                    r_username: recipient_user
+                    r_username: recipient_user,
+                    keys: keys
                 }).then(function (){
                     res.status(201).json({
                         status: 200,
