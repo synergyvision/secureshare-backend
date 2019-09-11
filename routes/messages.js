@@ -454,7 +454,7 @@ api.put('/:userid/:messageid/react', function (req,res){
     messageId = req.params.messageid
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-        if (decodedToken.uid == uid){
+        if (decodedToken.uid){
             admin.firestore().collection('Users').doc(uid).collection('Messages').doc(messageId).get().then(function (doc){
                 tray = doc.get('tray');
                 if (tray == 'published' ){
