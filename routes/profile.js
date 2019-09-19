@@ -231,8 +231,8 @@ api.get("/:userid/getKeys" , function (req,res){
 
 api.delete("/:userid/deleteKey", function (req,res){
     var uid = req.params.userid;
-    var encoded = req.headers.authorization.split(' ')[1]
     console.log(req.headers.authorization)
+    var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid == uid){
             var keyname = req.body.name;
