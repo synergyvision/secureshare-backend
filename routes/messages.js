@@ -355,7 +355,6 @@ api.post('/:userid/mail/:tray',function (req,res){
         if (decodedToken.uid == uid){
             user = req.body.user_id;
             tray = req.params.tray;
-            console.log(tray)
             admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(async (snapshot)=>{
                 messages = []
                 if (snapshot.empty){
