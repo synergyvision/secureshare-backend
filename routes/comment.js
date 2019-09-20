@@ -146,7 +146,13 @@ api.delete('/:commentId', function (req,res){
 
 var userInfo = function (id){
     return admin.firestore().collection('Users').doc(id).get().then(function (doc){
-        return doc.get('username');
+        var name = doc.get('name') + doc.get('lastname');
+        var picture = doc.get('profileUrl');
+        var user = {
+            name: name,
+            picture: picture
+        }
+        return user;
     }).catch(function (error){
         console.log(error)
     })
@@ -164,7 +170,8 @@ api.get('/:userid/:postid', function (req,res){
                    user = await userInfo(doc.get('user_id'))
                     comment = {
                         id: doc.id,
-                        user: user,
+                        username: user.name,
+                        picture: user.picture,
                         userId: doc.get('user_id'),
                         comment: doc.get('content')
                     }
