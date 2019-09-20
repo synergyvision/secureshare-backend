@@ -146,7 +146,7 @@ api.delete('/:commentId', function (req,res){
 
 var userInfo = function (id){
     return admin.firestore().collection('Users').doc(id).get().then(function (doc){
-        var name = doc.get('name') + doc.get('lastname');
+        var name = doc.get('name') + '' + doc.get('lastname');
         var picture = doc.get('profileUrl');
         var user = {
             name: name,
