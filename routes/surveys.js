@@ -525,6 +525,7 @@ api.get('/:surveyId', function (req,res){
               title: doc.get('title'),
               expires: doc.get('expires'),
               user: user,
+              userId: doc.get('uid'),
               surveyId: doc.id,
               questions: questions,
               answeredBy: doc.get('AnsweredBy')
