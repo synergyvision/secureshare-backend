@@ -77,7 +77,7 @@ io.on('connection', function (socket){
     console.log('new user connection')
 
     socket.on('subscribeSurvey', function (data){
-      newSurvey = functions.firestore.document.document('surveys/{surveyId}')
+      newSurvey = functions.firestore.document('surveys/{surveyId}')
                   .onCreate((snap,context) => {
                     socket.emit('updateSurveys',snap.id)
                   })
