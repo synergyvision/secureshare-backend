@@ -19,6 +19,7 @@ var apiRepo = require("./routes/repos");
 
  var admin = require("firebase-admin");
  var firebase = require("firebase");
+ var functions = require("firebase-functions")
 
 // for initalizing local firebase
 
@@ -76,7 +77,7 @@ io.on('connection', function (socket){
     console.log('new user connection')
 
     socket.on('subscribeSurvey', function (data){
-      newSurvey = firebase.functions.firestore.document('surveys/{surveyId}')
+      newSurvey = functions.firestore.document.document('surveys/{surveyId}')
                   .onCreate((snap,context) => {
                     socket.emit('updateSurveys',snap.id)
                   })
