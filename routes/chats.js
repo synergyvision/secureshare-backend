@@ -133,7 +133,6 @@ api.post('/:userid', function (req, res){
         })
     }) 
 })
-
 api.delete('/:userid/:chatid', function (req, res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {

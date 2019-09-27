@@ -70,32 +70,19 @@ app.get("/", function(req,res){
   res.send("Servidor arriba")
 });
 
-/*io = require('socket.io')(server);
+io = require('socket.io')(server);
 
 io.on('connection', function (socket){
-    var messageObserver = null;
-    var observer = null;
-    var RequestObserver = null;
-    var chatsOberserver = null;
-    var chatMessagesObserver = null;
     console.log('new user connection')
 
     socket.on('subscribeSurvey', function (data){
-      console.log('survey observable started');
-      ref = admin.firestore().collection('Surveys')
-       observer = ref.onSnapshot(querySnapshot => {
-        let changes = querySnapshot.docChanges();
-        changes.forEach(changes => {
-          if (changes.type == 'added'){
-            socket.emit('updateSurveys',changes.doc.id)
-          }
-        })
-      }, err => {
-        console.log(`Encountered error: ${err}`);
-      });
+      newSurvey = firebase.functions.firestore.document('surveys/{surveyId}')
+                  .onCreate((snap,context) => {
+                    socket.emit('updateSurveys',snap.id)
+                  })
     })
 
-    socket.on('subscribeMessages',function (data){
+    /*socket.on('subscribeMessages',function (data){
       console.log('messages observable started');
       messagesRef = admin.firestore().collection('Users').doc(data).collection('Messages').where('tray','==','inbox');
        messageObserver = messagesRef.onSnapshot(docSnapshot => {
@@ -158,17 +145,12 @@ io.on('connection', function (socket){
       }, err => {
         console.log(err)
       });
-    })
+    })*/
 
     socket.on('disconnected', function(data) {
       console.log('user disconnected')
-      messageObserver();
-      observer();
-      RequestObserver();
-      chatsOberserver();
-      chatMessagesObserver();
     });  
-})*/
+})
 
 
 

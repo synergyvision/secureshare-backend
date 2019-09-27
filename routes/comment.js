@@ -55,13 +55,13 @@ api.post('/', function (req, res) {
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid){
-            var comment = admin.firestore().collection('Comments');
+            var jojoRef = admin.firestore().collection('Comments'); // yes this is a jojo reference
             var commentData = {
                 content: req.body.content,
                 user_id: req.body.user_id,
                 post_id: req.body.post_id
             }
-            comment.add(commentData).then(function (){
+            jojoRef.add(commentData).then(function (){
                 res.status(201).json({
                     status:201,
                     message: 'Comment succesfully created'
