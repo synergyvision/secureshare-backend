@@ -75,14 +75,18 @@ io = require('socket.io')(server);
 
 io.on('connection', function (socket){
     console.log('new user connection')
+    observer = null;
 
     socket.on('subscribeSurvey', function (data){
       console.log('got here')
-      newSurvey = functions.firestore.document('Surveys/{surveyId}')
-                  .onCreate((snap,context) => {
-                    console.log('about to emit')
-                    socket.emit('updateSurveys',snap.id)
-                  })
+      jojoRef = admin.firestore().collection('Surveys')
+      observer = ref.onSnapshot(querySnapshot => {
+        newSurvey = functions.firestore.document('Surveys/{surveyId}')
+                    .onCreate((snap,context) => {
+                      console.log('about to emit')
+                      socket.emit('updateSurveys',snap.id)
+                    })
+      })              
     })
 
     /*socket.on('subscribeMessages',function (data){
@@ -151,6 +155,7 @@ io.on('connection', function (socket){
     })*/
 
     socket.on('disconnected', function(data) {
+      observer();
       console.log('user disconnected')
     });  
 })
