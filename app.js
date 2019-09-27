@@ -80,7 +80,7 @@ io.on('connection', function (socket){
     socket.on('subscribeSurvey', function (data){
       console.log('got here')
       jojoRef = admin.firestore().collection('Surveys')
-      observer = ref.onSnapshot(querySnapshot => {
+      observer = jojoRef.onSnapshot(querySnapshot => {
         newSurvey = functions.firestore.document('Surveys/{surveyId}')
                     .onCreate((snap,context) => {
                       console.log('about to emit')
