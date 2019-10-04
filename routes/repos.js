@@ -90,7 +90,7 @@ api.post('/:userid/getToken', function (req,res){
             password = req.body.password
             password = decryptPassword(password);
             password.then(function (password){
-                if (req.body.otp){
+                if (!req.body.otp){
                     var options = {
                         host: 'api.github.com',
                         path: '/authorizations/clients/' + credentials.gihub_client_id,
@@ -101,6 +101,7 @@ api.post('/:userid/getToken', function (req,res){
                         'Content-Length': data.length}
                     }
                 }else{
+                    otp = req.body.otp;
                     var options = {
                         host: 'api.github.com',
                         path: '/authorizations/clients/' + credentials.gihub_client_id,
