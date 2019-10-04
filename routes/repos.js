@@ -87,6 +87,25 @@ api.post('/:userid/getToken', function (req,res){
             data = JSON.stringify(data)
 
             user = req.body.username;
+
+            if (req.body.otp){
+                console.log('no otp')
+                otp = req.body.otp;
+                headers = {'user-agent': 'node.js', 
+                'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
+                'Content-Type': 'application/json',
+                'x-github-otp': otp,
+                'Content-Length': data.length}
+            }else{
+                console.log('otp')
+                headers = {'user-agent': 'node.js', 
+                'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
+                'Content-Type': 'application/json',
+                'Content-Length': data.length}
+            }
+
+
+
             password = req.body.password
             password = decryptPassword(password);
             password.then(function (password){
@@ -94,10 +113,7 @@ api.post('/:userid/getToken', function (req,res){
                     host: 'api.github.com',
                     path: '/authorizations/clients/' + credentials.gihub_client_id,
                     method: 'PUT',
-                    headers: {'user-agent': 'node.js', 
-                    'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length}
+                    headers: headers
                 }
                 let request = https.request(options,function (response){
                         response.setEncoding('utf8');
@@ -116,8 +132,11 @@ api.post('/:userid/getToken', function (req,res){
                                     status: 'created',
                                     message: 'the user Oauth token for github has been created'
                                 })
-                            }else if (body['message']){
-                                console.log(body['message'])
+                            }else if (body['message' == 'Must specify two-factor authentication OTP code.']){
+                                res.status(400).json({
+                                    status: 401,
+                                    message: "Missin otp token"
+                                })
                             } else{
                                 res.status(400).json({
                                     status: 400,
