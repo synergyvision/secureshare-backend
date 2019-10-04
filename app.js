@@ -81,6 +81,8 @@ io.on('connection', function (socket){
       console.log('got here')
       jojoRef = admin.firestore().collection('Surveys')
       observer = jojoRef.onSnapshot(querySnapshot => {
+        console.log('got new snapshot')
+        socket.emit('updateSurveys','2')
         newSurvey = functions.firestore.document('Surveys/{surveyId}')
                     .onCreate((snap,context) => {
                       console.log('about to emit')
