@@ -89,7 +89,7 @@ api.post('/:userid/getToken', function (req,res){
             user = req.body.username;
 
             if (req.body.otp){
-                console.log('no otp')
+                console.log('otp')
                 otp = req.body.otp;
                 headers = {'user-agent': 'node.js', 
                 'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
@@ -97,15 +97,12 @@ api.post('/:userid/getToken', function (req,res){
                 'x-github-otp': otp,
                 'Content-Length': data.length}
             }else{
-                console.log('otp')
+                console.log('no otp')
                 headers = {'user-agent': 'node.js', 
                 'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
                 'Content-Type': 'application/json',
                 'Content-Length': data.length}
             }
-
-
-
             password = req.body.password
             password = decryptPassword(password);
             password.then(function (password){
