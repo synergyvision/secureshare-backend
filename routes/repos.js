@@ -89,28 +89,29 @@ api.post('/:userid/getToken', function (req,res){
             user = req.body.username;
             password = req.body.password
             password = decryptPassword(password);
-            if (req.body.otp){
-                console.log('otp')
-                otp = req.body.otp;
-                headers = {'user-agent': 'node.js', 
-                'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
-                'Content-Type': 'application/json',
-                'x-github-otp': otp,
-                'Content-Length': data.length}
-            }else{
-                console.log('no otp')
-                headers = {'user-agent': 'node.js', 
-                'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
-                'Content-Type': 'application/json',
-                'Content-Length': data.length}
-            }
             password.then(function (password){
-                var options = {
-                    host: 'api.github.com',
-                    path: '/authorizations/clients/' + credentials.gihub_client_id,
-                    method: 'PUT',
-                    headers: headers
-                }
+                if (req.body.otp){
+                    var options = {
+                        host: 'api.github.com',
+                        path: '/authorizations/clients/' + credentials.gihub_client_id,
+                        method: 'PUT',
+                        headers: {'user-agent': 'node.js', 
+                        'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
+                        'Content-Type': 'application/json',
+                        'Content-Length': data.length}
+                    }
+                }else{
+                    var options = {
+                        host: 'api.github.com',
+                        path: '/authorizations/clients/' + credentials.gihub_client_id,
+                        method: 'PUT',
+                        headers: {'user-agent': 'node.js', 
+                        'Authorization': 'Basic ' + new Buffer(user + ':' + password).toString('base64'), 
+                        'Content-Type': 'application/json',
+                        'x-github-otp': otp,
+                        'Content-Length': data.length}
+                    }
+                }    
                 let request = https.request(options,function (response){
                         response.setEncoding('utf8');
                         let body = '';
@@ -131,7 +132,7 @@ api.post('/:userid/getToken', function (req,res){
                             }else if (body['message' == 'Must specify two-factor authentication OTP code.']){
                                 res.status(400).json({
                                     status: 401,
-                                    message: "Missin otp token"
+                                    message: "Missing otp token"
                                 })
                             } else{
                                 res.status(400).json({
