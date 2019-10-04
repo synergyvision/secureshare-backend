@@ -107,7 +107,6 @@ api.post('/:userid/getToken', function (req,res){
                         });
                         response.on('end', () => {
                             body = JSON.parse(body);
-                            console.log(body)
                             if (body['token']){
                                 admin.firestore().collection('Users').doc(uid).update({
                                     gitHubToken: body['token'],
@@ -117,12 +116,14 @@ api.post('/:userid/getToken', function (req,res){
                                     status: 'created',
                                     message: 'the user Oauth token for github has been created'
                                 })
-                            }else{
+                            }else if (body['message']){
+                                console.log(body['message'])
+                            } else{
                                 res.status(400).json({
                                     status: 400,
                                     message: 'could not create token'
                                 })
-                            }   
+                            }  
                         });
                         response.on('error', (e) => {
                             console.error(`problem with request: ${e.message}`);
