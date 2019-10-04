@@ -87,7 +87,8 @@ api.post('/:userid/getToken', function (req,res){
             data = JSON.stringify(data)
 
             user = req.body.username;
-
+            password = req.body.password
+            password = decryptPassword(password);
             if (req.body.otp){
                 console.log('otp')
                 otp = req.body.otp;
@@ -103,8 +104,6 @@ api.post('/:userid/getToken', function (req,res){
                 'Content-Type': 'application/json',
                 'Content-Length': data.length}
             }
-            password = req.body.password
-            password = decryptPassword(password);
             password.then(function (password){
                 var options = {
                     host: 'api.github.com',
