@@ -247,16 +247,36 @@ api.post('/:userid', function (req,res){
     }) 
 })
 
+var getUserPhoto = function (id){
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        picture = snapshot.get('profileUrl');
+        return picture;
+    }).catch(function (error){
+        res.json({
+            status: error.code,
+            message: error.message
+        })
+    })
+}
+
+
 api.get('/:userid/:messageid', function (req,res){
     uid = req.params.userid
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function (decodedToken) {
         if (decodedToken.uid == uid){
-            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(function (doc){
+            admin.firestore().collection('Users').doc(uid).collection('Messages').doc(req.params.messageid).get().then(async (doc) =>{
+                if (doc.get('id_sender')){
+                    user_id = doc.get('id_sender')
+                }else{
+                    user_id = doc.get('recipient')
+                }
+                var photo = await getUserPhoto(user_id)
                 res.status(200).json({
                     status: 200,
                     message: 'Message data retrieved',
-                    data: doc.data()
+                    data: doc.data(),
+                    photo: photo
                 })
             }).catch(function (error){
                 res.status(400).json({
