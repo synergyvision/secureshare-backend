@@ -100,7 +100,6 @@ api.post('/:userid/getToken', function (req,res){
                     'Content-Length': data.length}
                 }
                 let request = https.request(options,function (response){
-                        console.log(response)
                         response.setEncoding('utf8');
                         let body = '';
                         response.on('data',function (chunk){
