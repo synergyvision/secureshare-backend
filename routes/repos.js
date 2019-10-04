@@ -107,6 +107,7 @@ api.post('/:userid/getToken', function (req,res){
                         });
                         response.on('end', () => {
                             body = JSON.parse(body);
+                            console.log(body)
                             if (body['token']){
                                 admin.firestore().collection('Users').doc(uid).update({
                                     gitHubToken: body['token'],
