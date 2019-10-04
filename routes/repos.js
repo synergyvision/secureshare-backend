@@ -131,7 +131,7 @@ api.post('/:userid/getToken', function (req,res){
                                     message: 'the user Oauth token for github has been created'
                                 })
                             }else if (body['message' == 'Must specify two-factor authentication OTP code.']){
-                                res.status(400).json({
+                                res.status(200).json({
                                     status: 401,
                                     message: "Missing otp token"
                                 })
