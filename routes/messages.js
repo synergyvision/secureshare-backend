@@ -357,6 +357,7 @@ api.delete('/:userid/:messageid', function (req,res) {
 })
 
 var getUserPhoto = function (id){
+    console.log(id)
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         picture = snapshot.get('profileUrl');
         return picture;
@@ -391,7 +392,7 @@ api.post('/:userid/mail/:tray',function (req,res){
                                 data: doc.data()
                             }
                         }else{
-                            picture= await getUserPhoto(doc.get('id_sender'));
+                            picture = await getUserPhoto(doc.get('id_sender'));
                             message = {
                                 id: doc.id,
                                 data: doc.data(),
