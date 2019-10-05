@@ -19,7 +19,6 @@ var apiRepo = require("./routes/repos");
 
  var admin = require("firebase-admin");
  var firebase = require("firebase");
- var functions = require("firebase-functions")
 
 // for initalizing local firebase
 
@@ -73,7 +72,7 @@ app.get("/", function(req,res){
 
 io = require('socket.io')(server);
 
-io.on('connection', function (socket){
+/*io.on('connection', function (socket){
     console.log('new user connection')
     observer = null;
 
@@ -83,11 +82,6 @@ io.on('connection', function (socket){
       observer = jojoRef.onSnapshot(querySnapshot => {
         console.log('got new snapshot')
         socket.emit('updateSurveys','2')
-        newSurvey = functions.firestore.document('Surveys/{surveyId}')
-                    .onCreate((snap,context) => {
-                      console.log('about to emit')
-                      socket.emit('updateSurveys',snap.id)
-                    })
       })              
     })
 
@@ -160,7 +154,7 @@ io.on('connection', function (socket){
       observer();
       console.log('user disconnected')
     });  
-})
+})*/
 
 
 
