@@ -148,7 +148,7 @@ io = require('socket.io')(server);
       }, err => {
         console.log(err)
       });
-    })*/
+    })
 
     socket.on('disconnected', function(data) {
       observer();
