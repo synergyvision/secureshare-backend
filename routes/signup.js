@@ -32,7 +32,7 @@ api.post("/", function (req, res){
                     var postRef = db.collection('Users').doc(user_id);    
                     var data = {
                         name: req.body.nombre,
-                        lastname: req.body.apellido,
+                        lastName: req.body.apellido,
                         email: req.body.email,
                         phone: req.body.telefono,
                         username: req.body.usuario,
