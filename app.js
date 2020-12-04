@@ -22,16 +22,16 @@ var apiRepo = require("./routes/repos");
 
 // for initalizing local firebase
 
-var serviceAccount = require("./credentials.json");
-var config = require("./credentials2.json");
+var serviceAccount = require("./credentials2.json");
+var config = require("./credentials.json");
 
 //initialize firebase on server, comment when using locally
 
-var config = {
-  apiKey: process.env.firebase_apikey,
-  authDomain: process.env.firebase_authDomain,
-  databaseURL: process.env.firebase_databaseURL
-}
+// var config = {
+//   apiKey: process.env.firebase_apikey,
+//   authDomain: process.env.firebase_authDomain,
+//   databaseURL: process.env.firebase_databaseURL
+// }
 
 firebase.initializeApp(config);
 
