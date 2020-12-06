@@ -1,25 +1,25 @@
 var express = require("express");
 var admin = require("firebase-admin");
 var firebase = require("firebase");
-var bodyParser = require("body-parser");
-var bcrypt = require("bcrypt");
-
 var api = express.Router();
-api.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-  });
-  
-api.use(bodyParser.urlencoded({ extended: true }));
-api.use(bodyParser.json());
 
-var saltRounds = 10;
-api.post("/", function (req, res){
-    db = admin.firestore();
-    auth = firebase.auth();
-    db.collection('Users').where('username','==', req.body.username).get().then(snapshot => {
+api.get('/:username', function (req, res) {
+    const db = admin.firestore();
+    const username = req.params.username;
+    db.collection('Users').where('username','==', username).get().then(snapshot => {
         if (snapshot.empty){ 
+            res.status(201).json({
+                status: 201,
+                message: 'The username is available'
+            })
+        } else {
+            res.status(400).send({message: "The username is not available"});
+        }
+    })
+});
+
+api.post("/", function (req, res){
+    const db = admin.firestore();
             var postRef = db.collection('Users').doc(req.body.uid);    
             var data = {
                 firstName: req.body.firstName,
@@ -38,11 +38,7 @@ api.post("/", function (req, res){
                     status: error.code,
                     message: error.message
                 })
-            })
-        } else{
-            res.json({status: 400, message: "The username is not available"});
-        }
-    })    
+            })   
 });
 
 module.exports = api;

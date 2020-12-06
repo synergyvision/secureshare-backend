@@ -1,5 +1,7 @@
 var express = require("express");
 var openpgp = require("openpgp");
+var bodyParser = require("body-parser");
+var bcrypt = require("bcrypt");
 var apiRegister= require("./routes/signup");
 var apiLogin= require("./routes/login");
 var apiLogout= require("./routes/logout");
@@ -155,6 +157,15 @@ io = require('socket.io')(server);
       console.log('user disconnected')
     });  
 })*/
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 
