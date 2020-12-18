@@ -32,8 +32,10 @@ api.use(function(req, res, next) {
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
             var db = admin.firestore();
+            console.log(uid)
             db.collection('Users').doc(uid).get().then( function (snapshot){
                 var user = snapshot.data();
+                console.log(user);
                 res.status(200).json({
                     status: 200,
                     message: "user data retrieved",
@@ -58,50 +60,33 @@ api.put("/:userid" , function (req,res){
     var auth = firebase.auth();
     var uid = req.params.userid;
     var updateData = {
-       // email: req.body.email,
-        lastname: req.body.lastname,
-        name: req.body.name,
+        lastName: req.body.lastName,
+        firstName: req.body.firstName,
         phone: req.body.phone,
         username: req.body.username,
         bio: req.body.bio
     }
-    //if (req.body.email != 'undefined'){
-        var encoded = req.headers.authorization.split(' ')[1]
-        admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-            if (decodedToken.uid == uid) {
-                db.collection('Users').doc(uid).update(updateData);
-                console.log("se ha actualizado en la base de datos");
-                res.json({
-                    status: 200,
-                    message: "Perfil actualizado"
-                })
-                /*var user = firebase.auth().currentUser;
-                user.updateEmail(req.body.email).then(function() {
-                    console.log("se ha actualizado el correo en auth")
-                }).catch(function (error){
-                    res.json({
-                        status: error.code,
-                        message: error.message
-                    })
-                })*/ 
-            }else{
-                res.json({
-                    status: 401,
-                    messgae: 'token mismatch'
-                })
-            }
-        }).catch(function (error){
-            res.status(401).json({
-                status: error.code,
-                message: error.message
+    var encoded = req.headers.authorization.split(' ')[1]
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid) {
+            db.collection('Users').doc(uid).update(updateData);
+            console.log("se ha actualizado en la base de datos");
+            res.json({
+                status: 200,
+                message: "Perfil actualizado"
             })
-        }) 
-   // }else{
-     //   res.json({
-       //     status: 200,
-         //   message:"perfil actualizado"
-       // })     
-    //}
+        }else{
+            res.json({
+                status: 401,
+                message: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    })
 })
 
 /*api.put("/:userid/resetPassword" , function (req,res){
