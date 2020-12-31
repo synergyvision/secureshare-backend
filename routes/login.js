@@ -36,7 +36,8 @@ api.use(function(req, res, next) {
 
 api.post("/", function (req, res){
     var db = admin.database();
-    var au = fire.auth();    
+    var au = fire.auth();
+    console.log(JSON.parse(req.body))    
        password = decryptPassword(req.body.password);
         password.then(function (password){
         au.signInWithEmailAndPassword(req.body.email,password).then ( (response) => {

@@ -2,8 +2,16 @@ var express = require("express");
 var admin = require("firebase-admin");
 var firebase = require("firebase");
 var api = express.Router();
+var bodyParser = require("body-parser");
 
+api.use(bodyParser.urlencoded({ extended: false }));
+api.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Authorization, Content-Type, Accept");
+    next();
+});
 api.get('/:username', function (req, res) {
+    console.log(req.body)
     const db = admin.firestore();
     const username = req.params.username;
     db.collection('Users').where('username','==', username).get().then(snapshot => {

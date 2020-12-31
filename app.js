@@ -178,7 +178,7 @@ app.listen(3000, function() {
   console.log("Express app started on port 3000.");
 });
 
-app.use("/signup", apiRegister);
+app.use("/signUp", apiRegister);
 app.use("/login", apiLogin);
 app.use("/logout", apiLogout);
 app.use("/profile",apiProfile);
