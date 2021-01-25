@@ -2,6 +2,9 @@ var express = require("express");
 var firebase= require("firebase");
 var admin = require("firebase-admin");
 var bodyParser = require("body-parser");
+const { user } = require("firebase-functions/lib/providers/auth");
+const { info } = require("firebase-functions/lib/logger");
+const { request } = require("express");
 
 var api = express.Router();
 
@@ -18,10 +21,12 @@ var requestInfo =  function (user_id,request_id){
     return admin.firestore().collection('Users').doc(user_id).get().then( function (snapshot){
         var info = {
             id: user_id,
-            name: snapshot.get('name'),
-            lastname: snapshot.get('lastname'),
-            picture: snapshot.get('profileUrl'),
-            requestId: request_id
+            firstName: snapshot.get('firstName'),
+            lastName: snapshot.get('lastName'),
+            userPicture: snapshot.get('profileUrl'),
+            email: snapshot.get('email'),
+            requestId: request_id,
+            bio: snapshot.get('bio')
         }
         return info;
     }).catch(function (error){
@@ -59,9 +64,10 @@ api.get('/:userid/requests', function (req, res){
                     })       
                 }
                 else {
-                    res.status(404).json({
-                        status: 404,
-                        message: 'User has no request'
+                    res.status(201).json({
+                        status: 2001,
+                        message: 'User has no request',
+                        data: []
                     })
                 }   
             }).catch(function (error){
@@ -94,8 +100,7 @@ api.post('/:userid/requests', function (req, res){
                 id_from: uid,
                 status: false
             }
-            request = admin.firestore().collection('Requests');
-            request.add(requestData).then (function (){
+            admin.firestore().collection('Requests').add(requestData).then (function (){
                 res.status(201).json({
                     status: 201,
                     message: 'The friend request has been sent'
@@ -114,6 +119,7 @@ api.post('/:userid/requests', function (req, res){
             })
         }
     }).catch(function (error){
+        console.log(error);
         res.status(401).json({
             status: error.code,
             message: error.message
@@ -127,7 +133,7 @@ api.put('/:userid/requests/:requestid', function (req,res){
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid){
-            if (req.body.status == 'true'){
+            if (req.body.status){
                 newRequestData = {
                     status: true
                 }
@@ -271,9 +277,10 @@ api.get('/:userid/users', function (req,res){
                         i++;
                         info = {
                             id: doc.id,
-                            name: doc.get('name'),
-                            lastname: doc.get('lastname'),
+                            firstName: doc.get('firstName'),
+                            lastName: doc.get('lastName'),
                             photo: doc.get('profileUrl'),
+                            email: doc.get('email'),
                             contact: contact
                         }
                         users.push(info)
@@ -299,6 +306,102 @@ api.get('/:userid/users', function (req,res){
             message: error.message
         })
     }) 
+
+})
+
+function newFunction (user_id, id) {
+    return new Promise((resolve) => {
+        const contacts = admin.firestore().collection('Users').doc(user_id).collection('contacts').get();
+        const friendRequest = admin.firestore().collection('Requests').where('id_from', '==', user_id).get();
+        Promise.all([contacts,friendRequest]).then(( values ) => {
+            values[0].forEach(contact => {
+            values[1].forEach(request =>{
+                console.log(request.data())
+                    if(contact.data().Iduser !== id) {
+                        resolve(request.data().id_to === id ? 'pending' : false )
+                    } else {
+                        resolve(true)
+                    }
+                })
+            });
+            // console.log('===> contacts', values[0].map(doc => doc.data()));
+            // console.log('===> friendRequest',  values[1].map(doc => doc.data()));
+        })
+    })
+}
+
+api.get('/:userid/users/:query', function (req,res){
+    // quien lo hace 
+    uid = req.params.userid
+    // quien estoy buscando
+    var query = req.params.query
+    var encoded = req.headers.authorization.split(' ')[1]
+    users = []
+    var i = 0;
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid){
+            admin.firestore().collection('Users').get().then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    console.log(doc.id)
+                    newFunction(uid, doc.id).then(contact => {
+                        i++;
+                        let info = {
+                            id: doc.id,
+                            firstName: doc.get('firstName'),
+                            lastName: doc.get('lastName'),
+                            // photo: doc.get('profileUrl'),
+                            email: doc.get('email'),
+                            contact: contact
+                        }
+                        if(info.firstName.toLowerCase().indexOf(query.toLowerCase()) > -1 
+                            || info.lastName.toLowerCase().indexOf(query.toLowerCase()) > -1
+                            || info.email.toLowerCase().indexOf(query.toLowerCase()) > -1){ users.push(info)} 
+                        // user.push (info)    
+                        if (i == querySnapshot.size){
+                            res.status(200).json({
+                                status: 200,
+                                message: 'User list',
+                                data: users
+                            })   
+                        }
+                    })
+
+                    
+                    // user_contact = contact(uid,doc.id);
+                    // user_contact.then(function (contact){
+                });
+            })    
+        }else{
+            res.json({
+                status: 401,
+                messgae: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    }) 
+
+
+    // var contact = function (user_id,id){
+    //     query = admin.firestore().collection('Users').doc(user_id).collection('contacts').where('Iduser', '==', id)
+    //     return query.get().then(function (snapshot){
+    //         snapshot.forEach(function(doc) {
+    //             // doc.data() is never undefined for query doc snapshots
+    //             console.log(doc.id, " => ", doc.data());
+    //         });
+    //         if (snapshot.empty){
+    //             return false;
+    //         }else{
+    //             return true;
+    //         }
+    //     }).catch(function (error){
+    //         console.log(error)
+    //     })
+    // }
+
 
 })
 

@@ -94,13 +94,11 @@ api.get('/:userId/:postId', function (req,res){
         var post = req.params.postId;
         if (decodedToken.uid == uid){
             admin.firestore().collection('Posts').doc(post).get().then(async (doc) =>{
-                name = await getUserInfo(doc.get('user_id'));
-                userPicture = await getUserPhoto(doc.get('user_id'))
+                const user = await getUserInfo(doc.get('user_id'))
                 post = {
                     id: doc.id,
                     data: doc.data(),
-                    name: name,
-                    userPicture : userPicture
+                    user
                 }
                 res.status(200).json({
                     status: 200,

@@ -59,7 +59,8 @@ api.post('/', function (req, res) {
             var commentData = {
                 content: req.body.content,
                 user_id: req.body.user_id,
-                post_id: req.body.post_id
+                post_id: req.body.post_id,
+                timestamp: Date.now()
             }
             jojoRef.add(commentData).then(function (){
                 res.status(201).json({
@@ -145,16 +146,22 @@ api.delete('/:commentId', function (req,res){
 })
 
 var userInfo = function (id){
-    return admin.firestore().collection('Users').doc(id).get().then(function (doc){
-        var name = doc.get('name') + ' ' + doc.get('lastname');
-        var picture = doc.get('profileUrl');
-        var user = {
-            name: name,
-            picture: picture
+    return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
+        const firstName = snapshot.get('firstName');
+        const lastName = snapshot.get('lastName');
+        
+        const user = {
+            first_and_lastName: `${firstName} ${lastName}`,
+            email: snapshot.get('email'),
+            bio: snapshot.get('bio'),
+            userPicture: snapshot.get('profileUrl')
         }
-        return user;
+        return user
     }).catch(function (error){
-        console.log(error)
+        res.json({
+            status: error.code,
+            message: error.message
+        })
     })
 }
 
@@ -170,10 +177,10 @@ api.get('/:userid/:postid', function (req,res){
                    user = await userInfo(doc.get('user_id'))
                     comment = {
                         id: doc.id,
-                        username: user.name,
-                        picture: user.picture,
-                        userId: doc.get('user_id'),
-                        comment: doc.get('content')
+                        comment: doc.get('content'),
+                        timestamp: doc.get('timestamp'),
+                        user_id: doc.get('user_id'),
+                        user
                     }
                     comments.push(comment);
                 }

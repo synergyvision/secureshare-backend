@@ -56,8 +56,8 @@ api.use(function(req, res, next) {
 })
 
 api.put("/:userid" , function (req,res){
+    console.log(req.body)
     var db = admin.firestore();
-    var auth = firebase.auth();
     var uid = req.params.userid;
     var updateData = {
         lastName: req.body.lastName,
@@ -67,6 +67,7 @@ api.put("/:userid" , function (req,res){
         bio: req.body.bio
     }
     var encoded = req.headers.authorization.split(' ')[1]
+    console.log(encoded)
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid == uid) {
             db.collection('Users').doc(uid).update(updateData);
@@ -498,10 +499,11 @@ var contactInfo = function (id) {
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         var info = {
             id: id,
-            name: snapshot.get('name'),
-            lastname: snapshot.get('lastname'),
+            firstName: snapshot.get('firstName'),
+            lastName: snapshot.get('lastName'),
             bio: snapshot.get('bio'),
-            photo: snapshot.get('profileUrl')
+            photo: snapshot.get('profileUrl'),
+            email: snapshot.get('email')
         }
         return info;
     }).catch(function (error){
@@ -535,9 +537,10 @@ api.get('/:userid/contacts', function (req,res) {
                         })
                     })
                 }else{
-                    res.status(404).json({
-                        status: 404,
-                        message: 'User has no contacts'
+                    res.status(200).json({
+                        status: 200,
+                        message: 'User has no contacts',
+                        data: []
                     })
                 }    
             }).catch(function (error){
