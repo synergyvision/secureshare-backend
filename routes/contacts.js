@@ -46,8 +46,7 @@ api.get('/:userid/requests', function (req, res){
             admin.firestore().collection('Requests').where('id_to', '==', uid).get().then(function (snapshot){
                 if (!snapshot.empty){
                     snapshot.forEach(doc => {
-                        info = requestInfo(doc.get('id_from'),doc.id);
-                        info.then(function (info){
+                        requestInfo(doc.get('id_from'),doc.id).then(function (info){
                             i++;
                             if (doc.get('status') == false){
                                 requests.push(info);
@@ -71,6 +70,7 @@ api.get('/:userid/requests', function (req, res){
                     })
                 }   
             }).catch(function (error){
+                console.log(error)
                 res.status(400).json({
                     status: error.code,
                     message: error.message
@@ -315,25 +315,24 @@ function newFunction (user_id, id) {
         const friendRequest = admin.firestore().collection('Requests').where('id_from', '==', user_id).get();
         Promise.all([contacts,friendRequest]).then(( values ) => {
             values[0].forEach(contact => {
-            values[1].forEach(request =>{
-                console.log(request.data())
-                    if(contact.data().Iduser !== id) {
-                        resolve(request.data().id_to === id ? 'pending' : false )
-                    } else {
-                        resolve(true)
-                    }
-                })
+                if(values[1].empty){
+                    resolve(false);
+                } else {
+                    values[1].forEach(request => {
+                        if(contact.data().Iduser !== id) {
+                            resolve(request.data().id_to === id ? 'pending' : false )
+                        } else {
+                            resolve(true)
+                        }
+                    })
+                }
             });
-            // console.log('===> contacts', values[0].map(doc => doc.data()));
-            // console.log('===> friendRequest',  values[1].map(doc => doc.data()));
         })
     })
 }
 
 api.get('/:userid/users/:query', function (req,res){
-    // quien lo hace 
     uid = req.params.userid
-    // quien estoy buscando
     var query = req.params.query
     var encoded = req.headers.authorization.split(' ')[1]
     users = []
@@ -342,20 +341,21 @@ api.get('/:userid/users/:query', function (req,res){
         if (decodedToken.uid){
             admin.firestore().collection('Users').get().then(function(querySnapshot) {
                 querySnapshot.forEach(function(doc) {
-                    console.log(doc.id)
                     newFunction(uid, doc.id).then(contact => {
                         i++;
                         let info = {
                             id: doc.id,
                             firstName: doc.get('firstName'),
                             lastName: doc.get('lastName'),
-                            // photo: doc.get('profileUrl'),
+                            photo: doc.get('profileUrl'),
                             email: doc.get('email'),
                             contact: contact
                         }
                         if(info.firstName.toLowerCase().indexOf(query.toLowerCase()) > -1 
                             || info.lastName.toLowerCase().indexOf(query.toLowerCase()) > -1
-                            || info.email.toLowerCase().indexOf(query.toLowerCase()) > -1){ users.push(info)} 
+                            || info.email.toLowerCase().indexOf(query.toLowerCase()) > -1){ 
+                            users.push(info)
+                        }
                         // user.push (info)    
                         if (i == querySnapshot.size){
                             res.status(200).json({
@@ -365,10 +365,6 @@ api.get('/:userid/users/:query', function (req,res){
                             })   
                         }
                     })
-
-                    
-                    // user_contact = contact(uid,doc.id);
-                    // user_contact.then(function (contact){
                 });
             })    
         }else{
@@ -383,26 +379,6 @@ api.get('/:userid/users/:query', function (req,res){
             message: error.message
         })
     }) 
-
-
-    // var contact = function (user_id,id){
-    //     query = admin.firestore().collection('Users').doc(user_id).collection('contacts').where('Iduser', '==', id)
-    //     return query.get().then(function (snapshot){
-    //         snapshot.forEach(function(doc) {
-    //             // doc.data() is never undefined for query doc snapshots
-    //             console.log(doc.id, " => ", doc.data());
-    //         });
-    //         if (snapshot.empty){
-    //             return false;
-    //         }else{
-    //             return true;
-    //         }
-    //     }).catch(function (error){
-    //         console.log(error)
-    //     })
-    // }
-
-
 })
 
 module.exports = api;

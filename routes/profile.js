@@ -369,20 +369,31 @@ api.post("/:userid/getPublicKey", function (req,res){
     uid = req.params.userid;
     id = req.body.id;
     var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    admin.auth().verifyIdToken(encoded).then(async function(decodedToken) {
         if (decodedToken.uid == uid){
-            admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
-                querySnapshot.forEach( function (doc){
-                    publicKey = doc.get('PubKey');
-                    name = doc.get('name');
-                    res.status(200).json({
-                        status: 200,
-                        message: 'Public Key retrieved',
-                        data: publicKey,
-                        name: name
+            await admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
+                console.log(querySnapshot.empty)
+                if(!querySnapshot.empty) {
+                    querySnapshot.forEach( function (doc){
+                        console.log('ahora aqui')
+                        publicKey = doc.get('PubKey');
+                        name = doc.get('name');
+    
+                        res.status(200).json({
+                            status: 200,
+                            message: 'Public Key retrieved',
+                            data: publicKey,
+                            name: name
+                        })
                     })
-                })
+                }else {
+                    res.status(400).json({
+                        status: 400,
+                        message: 'The user has not selected a default key'
+                    })
+                }
             }).catch( function (error){
+                console.log(error)
                 res.status(400).json({
                     status: error.code,
                     message: error.message
