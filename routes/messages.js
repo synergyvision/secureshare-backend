@@ -357,8 +357,12 @@ api.delete('/:userid/:messageid', function (req,res) {
 })
 
 var getUserPhoto = function (id){
+    console.log('id de consulta', id)
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
-        picture = snapshot.get('profileUrl');
+        picture = {
+            profileUrl:  snapshot.get('profileUrl'),
+            email: snapshot.get('email')
+        }
         return picture;
     }).catch(function (error){
         res.json({
@@ -378,22 +382,26 @@ api.post('/:userid/mail/:tray',function (req,res){
             admin.firestore().collection('Users').doc(user).collection('Messages').where('tray', '==', tray).get().then(async (snapshot)=>{
                 messages = []
                 if (snapshot.empty){
-                    res.status(404).json({
-                        message: 'no messages found'
+                    res.status(201).json({
+                        status: 201,
+                        message: 'All messages have been retrieved',
+                        data: []
                     })
                 }else{
                     for (doc of snapshot.docs){
-                        if (tray == 'outbox'){
+                        if (tray === 'outbox'){
+                            picture = await getUserPhoto(doc.get('recipient'));
                             message = {
                                 id: doc.id,
-                                data: doc.data()
-                            }
-                        }else{
+                                data: doc.data(),
+                                picture: picture,
+                            };
+                        }else {
                             picture = await getUserPhoto(doc.get('id_sender'));
                             message = {
                                 id: doc.id,
                                 data: doc.data(),
-                                picture: picture
+                                picture: picture,
                             }
                         }
                         messages.push(message);
