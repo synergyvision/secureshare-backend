@@ -1,4 +1,4 @@
-//var credentials = require('../keys.json');
+var credentials = require('../credentials2.json');
 var express = require("express");
 var admin = require("firebase-admin");
 var bodyParser = require("body-parser");
@@ -16,11 +16,12 @@ api.use(function(req, res, next) {
 
   api.use(bodyParser.urlencoded({ extended: false }));
 
-  var publicKey = process.env.server_public_key.replace(/\\n/g,'\n');
+//   var publicKey = process.env.server_public_key.replace(/\\n/g,'\n');
+  var publicKey = credentials.server_public_key.replace(/\\n/g,'\n');
   var facebookId = process.env.facebook_id_app;
 
 api.get('/serverKeys', function (req,res){
-    //publickey = credentials.server_public_key;
+    publickey = credentials.server_public_key;
 
     
     res.status(200).json({

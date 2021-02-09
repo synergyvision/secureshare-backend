@@ -32,8 +32,10 @@ api.use(function(req, res, next) {
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
             var db = admin.firestore();
+            console.log(uid)
             db.collection('Users').doc(uid).get().then( function (snapshot){
                 var user = snapshot.data();
+                console.log(user);
                 res.status(200).json({
                     status: 200,
                     message: "user data retrieved",
@@ -54,54 +56,38 @@ api.use(function(req, res, next) {
 })
 
 api.put("/:userid" , function (req,res){
+    console.log(req.body)
     var db = admin.firestore();
-    var auth = firebase.auth();
     var uid = req.params.userid;
     var updateData = {
-       // email: req.body.email,
-        lastname: req.body.lastname,
-        name: req.body.name,
+        lastName: req.body.lastName,
+        firstName: req.body.firstName,
         phone: req.body.phone,
         username: req.body.username,
         bio: req.body.bio
     }
-    //if (req.body.email != 'undefined'){
-        var encoded = req.headers.authorization.split(' ')[1]
-        admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
-            if (decodedToken.uid == uid) {
-                db.collection('Users').doc(uid).update(updateData);
-                console.log("se ha actualizado en la base de datos");
-                res.json({
-                    status: 200,
-                    message: "Perfil actualizado"
-                })
-                /*var user = firebase.auth().currentUser;
-                user.updateEmail(req.body.email).then(function() {
-                    console.log("se ha actualizado el correo en auth")
-                }).catch(function (error){
-                    res.json({
-                        status: error.code,
-                        message: error.message
-                    })
-                })*/ 
-            }else{
-                res.json({
-                    status: 401,
-                    messgae: 'token mismatch'
-                })
-            }
-        }).catch(function (error){
-            res.status(401).json({
-                status: error.code,
-                message: error.message
+    var encoded = req.headers.authorization.split(' ')[1]
+    console.log(encoded)
+    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+        if (decodedToken.uid == uid) {
+            db.collection('Users').doc(uid).update(updateData);
+            console.log("se ha actualizado en la base de datos");
+            res.json({
+                status: 200,
+                message: "Perfil actualizado"
             })
-        }) 
-   // }else{
-     //   res.json({
-       //     status: 200,
-         //   message:"perfil actualizado"
-       // })     
-    //}
+        }else{
+            res.json({
+                status: 401,
+                message: 'token mismatch'
+            })
+        }
+    }).catch(function (error){
+        res.status(401).json({
+            status: error.code,
+            message: error.message
+        })
+    })
 })
 
 /*api.put("/:userid/resetPassword" , function (req,res){
@@ -229,13 +215,12 @@ api.get("/:userid/getKeys" , function (req,res){
     }) 
 })
 
-api.delete("/:userid/deleteKey", function (req,res){
+api.delete("/:userid/deleteKey/:keyName", function (req,res){
     var uid = req.params.userid;
-    console.log(req.headers.authorization)
     var encoded = req.headers.authorization.split(' ')[1]
     admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
         if (decodedToken.uid == uid){
-            var keyname = req.body.name;
+            var keyname = req.params.keyName;
             admin.firestore().collection('Users').doc(uid).collection('Keys').where('name','==',keyname).get().then(function (querySnapshot){
                 querySnapshot.forEach(function (doc){
                     docId = doc.id;
@@ -384,20 +369,31 @@ api.post("/:userid/getPublicKey", function (req,res){
     uid = req.params.userid;
     id = req.body.id;
     var encoded = req.headers.authorization.split(' ')[1]
-    admin.auth().verifyIdToken(encoded).then(function(decodedToken) {
+    admin.auth().verifyIdToken(encoded).then(async function(decodedToken) {
         if (decodedToken.uid == uid){
-            admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
-                querySnapshot.forEach( function (doc){
-                    publicKey = doc.get('PubKey');
-                    name = doc.get('name');
-                    res.status(200).json({
-                        status: 200,
-                        message: 'Public Key retrieved',
-                        data: publicKey,
-                        name: name
+            await admin.firestore().collection('Users').doc(id).collection('Keys').where('default','==',true).get().then( function (querySnapshot){
+                console.log(querySnapshot.empty)
+                if(!querySnapshot.empty) {
+                    querySnapshot.forEach( function (doc){
+                        console.log('ahora aqui')
+                        publicKey = doc.get('PubKey');
+                        name = doc.get('name');
+    
+                        res.status(200).json({
+                            status: 200,
+                            message: 'Public Key retrieved',
+                            data: publicKey,
+                            name: name
+                        })
                     })
-                })
+                }else {
+                    res.status(400).json({
+                        status: 400,
+                        message: 'The user has not selected a default key'
+                    })
+                }
             }).catch( function (error){
+                console.log(error)
                 res.status(400).json({
                     status: error.code,
                     message: error.message
@@ -514,10 +510,11 @@ var contactInfo = function (id) {
     return admin.firestore().collection('Users').doc(id).get().then( function (snapshot){
         var info = {
             id: id,
-            name: snapshot.get('name'),
-            lastname: snapshot.get('lastname'),
+            firstName: snapshot.get('firstName'),
+            lastName: snapshot.get('lastName'),
             bio: snapshot.get('bio'),
-            photo: snapshot.get('profileUrl')
+            photo: snapshot.get('profileUrl'),
+            email: snapshot.get('email')
         }
         return info;
     }).catch(function (error){
@@ -551,9 +548,10 @@ api.get('/:userid/contacts', function (req,res) {
                         })
                     })
                 }else{
-                    res.status(404).json({
-                        status: 404,
-                        message: 'User has no contacts'
+                    res.status(200).json({
+                        status: 200,
+                        message: 'User has no contacts',
+                        data: []
                     })
                 }    
             }).catch(function (error){
