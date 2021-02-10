@@ -2,7 +2,7 @@
     "name": "Sharekey_backend",
     "author": "Synergy Vision",
     "private": true,
-    "Version": "1.0.1",
+    "Version": "1.0.0",
     "scripts": {
         "start": "node app.js",
         "dev": "nodemon app.js"
