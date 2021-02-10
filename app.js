@@ -24,34 +24,34 @@ var apiRepo = require("./routes/repos");
 
 // for initalizing local firebase
 
-var serviceAccount = require("./credentials2.json");
-var config = require("./credentials.json");
+// var serviceAccount = require("./credentials2.json");
+// var config = require("./credentials.json");
 
 //initialize firebase on server, comment when using locally
 
-// var config = {
-//   apiKey: process.env.firebase_apikey,
-//   authDomain: process.env.firebase_authDomain,
-//   databaseURL: process.env.firebase_databaseURL
-// }
+var config = {
+  apiKey: process.env.firebase_apikey,
+  authDomain: process.env.firebase_authDomain,
+  databaseURL: process.env.firebase_databaseURL
+}
 
 firebase.initializeApp(config);
 
 
 //initialize firebase admin on server, comment when using locally
 
-// var serviceAccount = {
-//   type: process.env.firebase_type,
-//   project_id: process.env.firebase_project_id,
-//   private_key_id: process.env.firebase_private_key_id,
-//   private_key: process.env.firebase_private_key.replace(/\\n/g,'\n'),
-//   client_email: process.env.firebase_client_email,
-//   client_id: process.env.firebase_client_id,
-//   auth_uri: process.env.firebase_auth_uri,
-//   token_uri: process.env.firebase_token_uri,
-//   auth_provider_x509_cert_url: process.env.firebase_auth_provider_x509_cert_url,
-//   client_x509_cert_url: process.env.firebase_client_x509_cert_url
-// }
+var serviceAccount = {
+  type: process.env.firebase_type,
+  project_id: process.env.firebase_project_id,
+  private_key_id: process.env.firebase_private_key_id,
+  private_key: process.env.firebase_private_key.replace(/\\n/g,'\n'),
+  client_email: process.env.firebase_client_email,
+  client_id: process.env.firebase_client_id,
+  auth_uri: process.env.firebase_auth_uri,
+  token_uri: process.env.firebase_token_uri,
+  auth_provider_x509_cert_url: process.env.firebase_auth_provider_x509_cert_url,
+  client_x509_cert_url: process.env.firebase_client_x509_cert_url
+}
 
 db = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -169,14 +169,14 @@ app.use(bodyParser.json());
 
 
 
-// server.listen(process.env.PORT, function() {
-//   console.log("Express app started on heroku server");
-// })
+server.listen(process.env.PORT, function() {
+  console.log("Express app started on heroku server");
+})
 
 
-app.listen(3000, function() {
-  console.log("Express app started on port 3000.");
-});
+// app.listen(3000, function() {
+//   console.log("Express app started on port 3000.");
+// });
 
 app.use("/signUp", apiRegister);
 app.use("/login", apiLogin);
